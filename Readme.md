@@ -1,7 +1,7 @@
 # Личный проект «YetiCave»
 
 * Студент: [Pavel](https://up.htmlacademy.ru/php-individual/1/user/2676321).
-* Наставник: `Неизвестно`.
+* Наставник: Сергей Парфенов
 
 ---
 
