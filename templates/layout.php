@@ -9,7 +9,8 @@
  *      name: string,
  *      category: string,
  *      price: int,
- *      imageUrl: string
+ *      imageUrl: string,
+ *      endDate: string
  *  }> $products $products
  */
 

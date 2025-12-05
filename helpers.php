@@ -144,10 +144,58 @@ function includeTemplate(string $name, array $data = []): string
 }
 
 /**
+ * Форматирует строку с ценой, разделяя по разрядам и добавляя знак рубля.
  * @param int|float $price Стоимость товара в рублях
  * @return string Отформатированная строка с ценой
  */
 function formatPrice(int|float $price): string
 {
     return number_format(ceil($price), 0, '', ' ') . '<b class="rub">р</b>';
+}
+
+/**
+ * Считает количество минут и часов до окончания аукциона.
+ * @param string $endDate Дата окончания аукциона
+ * @return array{hours: int, minutes: int} Ассоциативный массив с количеством минут и часов
+ */
+function getDtRange(string $endDate): array
+{
+    $now = new DateTime();
+    try {
+        $end = new DateTime($endDate);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return [
+            'hours' => 0,
+            'minutes' => 0
+        ];
+    }
+
+
+    $diff = $now->diff($end);
+    $hours = 0;
+    $minutes = 0;
+
+    if ($diff->invert === 0) {
+        $hours = $diff->h + $diff->days * 24;
+        $minutes = $diff->i;
+    }
+
+    return [
+        'hours' => $hours,
+        'minutes' => $minutes
+    ];
+}
+
+/**
+ * Преобразует массив с временем до конца аукциона в строку формата "ЧЧ:ММ".
+ * @param array{hours: int, minutes: int} $dtRange Ассоциативный массив с количеством минут и часов до конца аукциона
+ * @return string Отформатированная строка
+ */
+function formatRange(array $dtRange): string
+{
+    $hours = str_pad($dtRange['hours'], 2, '0', STR_PAD_LEFT);
+    $minutes = str_pad($dtRange['minutes'], 2, '0', STR_PAD_LEFT);
+
+    return $hours . ':' . $minutes;
 }

@@ -5,7 +5,8 @@
  *      name: string,
  *      category: string,
  *      price: int,
- *      imageUrl: string
+ *      imageUrl: string,
+ *      endDate: string
  *  }> $products $products
  */
 
@@ -46,8 +47,12 @@
                             <span class="lot__amount">Стартовая цена</span>
                             <span class="lot__cost"><?= formatPrice($product['price']); ?></span>
                         </div>
-                        <div class="lot__timer timer">
-                            12:23
+                        <?php
+                        $dtRange = getDtRange($product['endDate']);
+                        $timerClass = $dtRange['hours'] === 0 ? 'timer--finishing' : '';
+                        ?>
+                        <div class="lot__timer timer <?= $timerClass; ?>">
+                            <?= formatRange($dtRange); ?>
                         </div>
                     </div>
                 </div>
