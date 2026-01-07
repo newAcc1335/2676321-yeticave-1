@@ -1,37 +1,21 @@
 <?php
 
-include_once __DIR__ . '/helpers.php';
+/**
+ * @var mysqli $conn
+ */
+
+require_once __DIR__ . '/init.php';
 
 $isAuth = rand(0, 1);
 $userName = 'Pavel';
 $title = 'Главная';
 
-$categories = [
-    [
-        'name' => 'Доски и лыжи',
-        'modifier' => 'boards',
-    ],
-    [
-        'name' => 'Крепления',
-        'modifier' => 'attachment',
-    ],
-    [
-        'name' => 'Ботинки',
-        'modifier' => 'boots ',
-    ],
-    [
-        'name' => 'Одежда',
-        'modifier' => 'clothing',
-    ],
-    [
-        'name' => 'Инструменты',
-        'modifier' => 'tools',
-    ],
-    [
-        'name' => 'Разное',
-        'modifier' => 'other',
-    ],
-];
+$categories = getCategories($conn);
+$lots = getLots($conn);
+
+echo '<script>';
+echo 'console.log(' . json_encode($lots, JSON_PRETTY_PRINT) . ');';
+echo '</script>';
 
 $products = [
     [
@@ -80,7 +64,7 @@ $products = [
 
 $mainContent = includeTemplate(
     'main.php',
-    ['categories' => $categories, 'products' => $products]
+    ['categories' => $categories, 'lots' => $lots]
 );
 
 $layoutContent = includeTemplate(
@@ -91,7 +75,6 @@ $layoutContent = includeTemplate(
         'isAuth' => $isAuth,
         'userName' => $userName,
         'categories' => $categories,
-        'products' => $products,
     ]
 );
 

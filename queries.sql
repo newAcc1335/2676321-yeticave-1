@@ -48,41 +48,42 @@ VALUES (1, 3, 11200),
 SELECT *
 FROM categories;
 
--- Запрос на получение самых новых, открытых лотов. Максимум - 10 штук
+-- Запрос на получение самых новых, открытых лотов (максимум 6 штук)
 SELECT
-  l.title,
-  l.starting_price,
-  l.image_url,
-  c.name AS category_name,
-  COALESCE(MAX(b.amount), l.starting_price) AS price
+    l.title,
+    l.starting_price,
+    l.image_url,
+    l.end_time,
+    c.name AS category,
+    COALESCE(MAX(b.amount), l.starting_price) AS price
 FROM lots l
-       JOIN categories c ON c.id = l.category_id
-       LEFT JOIN bids b ON b.lot_id = l.id
+JOIN categories c ON c.id = l.category_id
+LEFT JOIN bids b ON b.lot_id = l.id
 WHERE l.end_time > NOW()
 GROUP BY l.id
 ORDER BY l.start_time DESC
-  LIMIT 10;
+LIMIT 6;
 
--- Запрос для получения лота по его ID + название категории. Пример указан для ID = 1
+-- Запрос для получения лота по его ID + название категории (Пример: id = 1)
 SELECT
-  l.*,
-  c.name AS category_name
+    l.*,
+    c.name AS category_name
 FROM lots l
-       JOIN categories c ON c.id = l.category_id
+JOIN categories c ON c.id = l.category_id
 WHERE l.id = 1;
 
--- Запрос для обновление названия лота по его ID. Пример указан для ID = 3 (добавили размер L/XL)
+-- Запрос для обновление названия лота по его ID (Пример: id = 3, добавили размер L/XL)
 UPDATE lots
 SET title = 'Крепления Union Contact Pro 2015 года размер L/XL'
 WHERE id = 3;
 
--- Запрос для получения списка ставок для лота по его ID. Пример указан для ID = 3
+-- Запрос для получения списка ставок для лота по его ID (Пример: id = 3)
 SELECT
-  b.id,
-  b.amount,
-  b.created_at,
-  u.name AS user_name
+    b.id,
+    b.amount,
+    b.created_at,
+    u.name AS user_name
 FROM bids b
-       JOIN users u ON u.id = b.user_id
+JOIN users u ON u.id = b.user_id
 WHERE b.lot_id = 3
 ORDER BY b.created_at DESC;

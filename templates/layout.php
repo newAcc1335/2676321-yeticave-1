@@ -5,13 +5,6 @@
  * @var string $userName
  * @var int $isAuth
  * @var array<int, array{name: string, modifier: string}> $categories
- * @var array<int, array{
- *      name: string,
- *      category: string,
- *      price: int,
- *      imageUrl: string,
- *      endDate: string
- *  }> $products $products
  */
 
 ?>
