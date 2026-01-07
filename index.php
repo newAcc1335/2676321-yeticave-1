@@ -10,8 +10,13 @@ $isAuth = rand(0, 1);
 $userName = 'Pavel';
 $title = 'Главная';
 
-$categories = getCategories($conn);
-$lots = getLots($conn);
+try {
+    $categories = getCategories($conn);
+    $lots = getLots($conn);
+} catch (RuntimeException $e) {
+    error_log($e->getMessage());
+    exit('Ошибка при загрузке данных из БД');
+}
 
 $mainContent = includeTemplate(
     'main.php',

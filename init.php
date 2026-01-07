@@ -8,4 +8,10 @@ require_once __DIR__ . '/functions/helpers.php';
 require_once __DIR__ . '/functions/database.php';
 
 $config = require_once __DIR__ . '/config.php';
-$conn = getDbConnect($config['db']);
+
+try {
+    $conn = getDbConnect($config['db']);
+} catch (RuntimeException $e) {
+    error_log($e->getMessage());
+    exit('Ошибка подключения к базе данных');
+}

@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Создаёт и возвращает соединение с базой данных MySQL.
+ *
+ * @param array{host: string, user: string, password: string, database: string} $db_config
+ * @return mysqli Соединение с базой данных
+ * @throws RuntimeException Исключение в случие ошибки при подключении
+ */
 function getDbConnect(array $db_config): mysqli
 {
     $conn = new mysqli(
@@ -10,8 +17,7 @@ function getDbConnect(array $db_config): mysqli
     );
 
     if ($conn->connect_error) {
-        error_log($conn->connect_error);
-        exit('Ошибка подключения к базе данных');
+        throw new RuntimeException($conn->connect_error);
     }
 
     $conn->set_charset('utf8mb4');
@@ -19,19 +25,52 @@ function getDbConnect(array $db_config): mysqli
     return $conn;
 }
 
-function getCategories(mysqli $conn): array
+/**
+ * Выполняет SQL-запрос и возвращает все строки в форме массива ассоциативных массивов.
+ *
+ * @param mysqli $conn Соединение с базой данных MySQL
+ * @param string $sql SQL-запрос
+ * @return array<int, array<string, string|float|int>> Результат запроса
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function dbFetchAll(mysqli $conn, string $sql): array
 {
-    $sql = 'SELECT name, modifier FROM categories';
     $result = $conn->query($sql);
 
     if (!$result) {
-        error_log($conn->error);
-        exit('Ошибка при получении категорий товаров');
+        throw new RuntimeException($conn->error);
     }
 
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
+/**
+ * Возвращает названия и модификаторы всех категорий.
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @return array<int, array{name: string, modifier: string}> Список категорий с названием и модификатором
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function getCategories(mysqli $conn): array
+{
+    $sql = 'SELECT name, modifier FROM categories';
+    return dbFetchAll($conn, $sql);
+}
+
+/**
+ * Возвращает последние активные лоты. Максимум 6 штук
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @return array<int, array{
+ *     name: string,
+ *     startingPrice: int,
+ *     price: int,
+ *     imageUrl: string,
+ *     endDate: string,
+ *     category: string
+ * }> Массив последних лотов
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
 function getLots(mysqli $conn): array
 {
     $sql = '
@@ -51,12 +90,5 @@ function getLots(mysqli $conn): array
         LIMIT 6;
     ';
 
-    $result = $conn->query($sql);
-
-    if (!$result) {
-        error_log($conn->error);
-        exit('Ошибка при получении последних лотов');
-    }
-
-    return $result->fetch_all(MYSQLI_ASSOC);
+    return dbFetchAll($conn, $sql);
 }
