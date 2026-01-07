@@ -5,13 +5,6 @@
  * @var string $userName
  * @var int $isAuth
  * @var array<int, array{name: string, modifier: string}> $categories
- * @var array<int, array{
- *      name: string,
- *      category: string,
- *      price: int,
- *      imageUrl: string,
- *      endDate: string
- *  }> $products $products
  */
 
 ?>
@@ -136,7 +129,7 @@
     </div>
 </footer>
 
-<script src="flatpickr.js"></script>
-<script src="script.js"></script>
+<script src="/js/flatpickr.js"></script>
+<script src="/js/script.js"></script>
 </body>
 </html>
