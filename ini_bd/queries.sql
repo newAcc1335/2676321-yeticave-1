@@ -64,7 +64,7 @@ GROUP BY l.id
 ORDER BY l.start_time DESC
 LIMIT 6;
 
--- Запрос для получения лота по его ID + название категории (Пример: id = 1)
+-- Запрос для получения лота по его ID (Пример: id = 1)
 SELECT
     l.*,
     c.name AS category_name

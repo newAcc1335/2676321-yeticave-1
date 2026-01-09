@@ -30,10 +30,10 @@ function getDbConnect(array $db_config): mysqli
  *
  * @param mysqli $conn Соединение с базой данных MySQL
  * @param string $sql SQL-запрос
- * @return array<int, array<string, string|float|int>> Результат запроса
+ * @return array<int, array<string, string|float|int>>|null Результат запроса или null, если строк не найдено
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
-function dbFetchAll(mysqli $conn, string $sql): array
+function dbFetchAll(mysqli $conn, string $sql): ?array
 {
     $result = $conn->query($sql);
 
@@ -41,7 +41,26 @@ function dbFetchAll(mysqli $conn, string $sql): array
         throw new RuntimeException($conn->error);
     }
 
-    return $result->fetch_all(MYSQLI_ASSOC);
+    return $result->fetch_all(MYSQLI_ASSOC) ?: null;
+}
+
+/**
+ * Выполняет SQL-запрос и возвращает одну строку в форме ассоциативного массива.
+ *
+ * @param mysqli $conn Соединение с базой данных MySQL
+ * @param string $sql SQL-запрос
+ * @return array<string, string|float|int>|null Результат запроса или null, если строка не найдена
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function dbFetchOne(mysqli $conn, string $sql): ?array
+{
+    $result = $conn->query($sql);
+
+    if (!$result) {
+        throw new RuntimeException($conn->error);
+    }
+
+    return $result->fetch_assoc() ?: null;
 }
 
 /**
@@ -66,19 +85,20 @@ function getCategories(mysqli $conn): array
  *     startingPrice: int,
  *     price: int,
  *     imageUrl: string,
- *     endDate: string,
+ *     endTime: string,
  *     category: string
- * }> Массив последних лотов
+ * }> Массив, состоящий из последних лотов
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function getLots(mysqli $conn): array
 {
     $sql = '
         SELECT
+            l.id as id,
             l.title AS name,
             l.starting_price AS startingPrice,
             l.image_url AS imageUrl,
-            l.end_time AS endDate,
+            l.end_time AS endTime,
             c.name AS category,
             COALESCE(MAX(b.amount), l.starting_price) AS price
         FROM lots l
@@ -91,4 +111,35 @@ function getLots(mysqli $conn): array
     ';
 
     return dbFetchAll($conn, $sql);
+}
+
+/**
+ * Возвращает данные лота по его id.
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @param int $lotId id лота
+ * @return array<string, string|int|float>|null Ассоциативный массив с данными лота или null, если лот не найден
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function getLotById(mysqli $conn, int $lotId): ?array
+{
+    $sql = '
+        SELECT
+            l.title AS name,
+            l.description,
+            l.starting_price AS startingPrice,
+            l.image_url AS imageUrl,
+            l.start_time as startTime,
+            l.end_time AS endTime,
+            l.bid_step as step,
+            c.name AS category,
+            COALESCE(MAX(b.amount), l.starting_price) AS price
+        FROM lots l
+        JOIN categories c ON c.id = l.category_id
+        LEFT JOIN bids b ON b.lot_id = l.id
+        WHERE l.id = ' . $lotId . '
+        GROUP BY l.id
+    ';
+
+    return dbFetchOne($conn, $sql);
 }

@@ -2,12 +2,13 @@
 /**
  * @var array<int, array{name: string, modifier: string}> $categories
  * @var array<int, array{
+ *      id: int,
  *      name: string,
  *      category: string,
  *      price: int,
  *      startingPrice: int,
  *      imageUrl: string,
- *      endDate: string
+ *      endTime: string
  *  }> $lots
  */
 
@@ -40,16 +41,17 @@
                 </div>
                 <div class="lot__info">
                     <span class="lot__category"><?= htmlspecialchars($lot['category']); ?></span>
-                    <h3 class="lot__title"><a class="text-link" href="/pages/lot.html"><?= htmlspecialchars(
-                                $lot['name']
-                            ); ?></a></h3>
+                    <h3 class="lot__title">
+                        <a class="text-link" href="/lot.php?id=<?= $lot['id']; ?>">
+                            <?= htmlspecialchars($lot['name']); ?>
+                        </a></h3>
                     <div class="lot__state">
                         <div class="lot__rate">
                             <span class="lot__amount">Стартовая цена</span>
                             <span class="lot__cost"><?= formatPrice($lot['startingPrice']); ?></span>
                         </div>
                         <?php
-                        $dtRange = getDtRange($lot['endDate']);
+                        $dtRange = getDtRange($lot['endTime']);
                         $timerClass = $dtRange['hours'] === 0 ? 'timer--finishing' : '';
                         ?>
                         <div class="lot__timer timer <?= $timerClass; ?>">
