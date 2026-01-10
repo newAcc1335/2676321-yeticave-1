@@ -87,7 +87,7 @@ function getCategories(mysqli $conn): array
  *     imageUrl: string,
  *     endTime: string,
  *     category: string
- * }> Массив, состоящий из последних лотов
+ * }> Массив, состоящий из последних лотов, или пустой массив, если активных лотов нет
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function getLots(mysqli $conn): array
@@ -110,7 +110,7 @@ function getLots(mysqli $conn): array
         LIMIT 6;
     ';
 
-    return dbFetchAll($conn, $sql);
+    return dbFetchAll($conn, $sql) ?? [];
 }
 
 /**
@@ -123,7 +123,7 @@ function getLots(mysqli $conn): array
  */
 function getLotById(mysqli $conn, int $lotId): ?array
 {
-    $sql = '
+    $sql = "
         SELECT
             l.title AS name,
             l.description,
@@ -137,9 +137,94 @@ function getLotById(mysqli $conn, int $lotId): ?array
         FROM lots l
         JOIN categories c ON c.id = l.category_id
         LEFT JOIN bids b ON b.lot_id = l.id
-        WHERE l.id = ' . $lotId . '
+        WHERE l.id = {$lotId}
         GROUP BY l.id
-    ';
+    ";
 
     return dbFetchOne($conn, $sql);
+}
+
+/**
+ * Возвращает список всех ставок для указанного лота. Ставки сортируются по дате создания — сначала новые.
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @param int $lotId ID лота
+ *
+ * @return array<int, array{
+ *     amount: int,
+ *     createdAt: string,
+ *     userName: string,
+ *     userId: int
+ * }> Массив ставок или пустой массив, если ставок нет
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function getLotBids(mysqli $conn, int $lotId): array
+{
+    $sql = "
+        SELECT
+            b.amount AS amount,
+            b.created_at AS createdAt,
+            u.name AS userName,
+            u.id AS userId
+        FROM bids b
+        JOIN users u ON u.id = b.user_id
+        WHERE b.lot_id = {$lotId}
+        ORDER BY b.created_at DESC
+    ";
+
+    return dbFetchAll($conn, $sql) ?? [];
+}
+
+/**
+ * Создает подготовленное выражение на основе готового SQL запроса и переданных данных
+ *
+ * @param $link mysqli Ресурс соединения
+ * @param $sql string SQL запрос с плейсхолдерами вместо значений
+ * @param array $data Данные для вставки на место плейсхолдеров
+ *
+ * @return mysqli_stmt Подготовленное выражение
+ */
+function dbGetPrepareStmt(mysqli $link, string $sql, array $data = []): mysqli_stmt
+{
+    $stmt = mysqli_prepare($link, $sql);
+
+    if ($stmt === false) {
+        $errorMsg = 'Не удалось инициализировать подготовленное выражение: ' . mysqli_error($link);
+        die($errorMsg);
+    }
+
+    if ($data) {
+        $types = '';
+        $stmt_data = [];
+
+        foreach ($data as $value) {
+            $type = 's';
+
+            if (is_int($value)) {
+                $type = 'i';
+            } elseif (is_string($value)) {
+                $type = 's';
+            } elseif (is_double($value)) {
+                $type = 'd';
+            }
+
+            if ($type) {
+                $types .= $type;
+                $stmt_data[] = $value;
+            }
+        }
+
+        $values = array_merge([$stmt, $types], $stmt_data);
+
+        $func = 'mysqli_stmt_bind_param';
+        $func(...$values);
+
+        if (mysqli_errno($link) > 0) {
+            $errorMsg = 'Не удалось связать подготовленное выражение с параметрами: ' . mysqli_error($link);
+            die($errorMsg);
+        }
+    }
+
+    return $stmt;
 }

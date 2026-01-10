@@ -13,22 +13,13 @@
  *     step: int,
  *     category: string,
  * } $lot
+ * @var string $navigation
  */
 
 ?>
 
 <main>
-    <nav class="nav">
-        <ul class="nav__list container">
-            <?php
-            foreach ($categories as $category) : ?>
-                <li class="nav__item">
-                    <a href="all-lots.html"><?= htmlspecialchars($category['name']); ?></a>
-                </li>
-            <?php
-            endforeach; ?>
-        </ul>
-    </nav>
+    <?= $navigation; ?>
     <section class="lot-item container">
         <h2><?= htmlspecialchars($lot['name']); ?></h2>
         <div class="lot-item__content">
@@ -47,10 +38,10 @@
                     <div class="lot-item__cost-state">
                         <div class="lot-item__rate">
                             <span class="lot-item__amount">Текущая цена</span>
-                            <span class="lot-item__cost"><?= htmlspecialchars($lot['price']); ?></span>
+                            <span class="lot-item__cost"><?= formatPrice($lot['price'], false); ?></span>
                         </div>
                         <div class="lot-item__min-cost">
-                            Мин. ставка <span>12 000 р</span>
+                            Мин. ставка <span><?= formatPrice($lot['price'] + $lot['step'], false); ?> р</span>
                         </div>
                     </div>
                     <form class="lot-item__form" action="https://echo.htmlacademy.ru" method="post" autocomplete="off">
@@ -120,3 +111,5 @@
             </div>
         </div>
     </section>
+</main>
+
