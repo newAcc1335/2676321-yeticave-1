@@ -4,10 +4,10 @@ require_once __DIR__ . '/init.php';
 
 /**
  * @var mysqli $conn
+ * @var string $userName
+ * @var int $isAuth
  */
 
-$isAuth = rand(0, 1);
-$userName = 'Pavel';
 $title = 'Главная';
 
 try {
@@ -23,11 +23,17 @@ $mainContent = includeTemplate(
     ['categories' => $categories, 'lots' => $lots]
 );
 
+$navigation = includeTemplate(
+    'navigation.php',
+    ['categories' => $categories]
+);
+
 $layoutContent = includeTemplate(
     'layout.php',
     [
         'title' => $title,
         'content' => $mainContent,
+        'navigation' => $navigation,
         'isAuth' => $isAuth,
         'userName' => $userName,
         'categories' => $categories,

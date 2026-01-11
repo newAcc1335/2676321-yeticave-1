@@ -23,18 +23,18 @@ VALUES ('Иван', 'ivan1@test.com', 'testpass01', 'Телефон: +7 900 000-
 -- Запрос на добавление существующих объявлений
 INSERT INTO lots
 (title, description, image_url, end_time, starting_price, bid_step, category_id, creator_id)
-VALUES ('2014 Rossignol District Snowboard', 'Описание товара1', '/img/lot-1.jpg', '2025-12-02 00:00:00', 10999, 100, 1,
+VALUES ('2014 Rossignol District Snowboard', 'Описание товара1 2014 Rossignol District Snowboard', '/img/lot-1.jpg', '2025-12-02 00:00:00', 10999, 100, 1,
         1),
-       ('DC Ply Mens 2016/2017 Snowboard', 'Описание товара2', '/img/lot-2.jpg', '2025-12-03 00:00:00', 159999, 100, 1,
+       ('DC Ply Mens 2016/2017 Snowboard', 'Описание товара2 DC Ply Mens 2016/2017 Snowboard', '/img/lot-2.jpg', '2025-12-03 00:00:00', 159999, 100, 1,
         1),
-       ('Крепления Union Contact Pro 2015 года', 'Описание товара3', '/img/lot-3.jpg',
+       ('Крепления Union Contact Pro 2015 года', 'Описание товара3 Крепления Union Contact Pro 2015 года', '/img/lot-3.jpg',
         '2025-12-04 00:00:00',
         8000, 100, 2, 1),
-       ('Ботинки для сноуборда DC Mutiny Charcoal', 'Описание товара4', '/img/lot-4.jpg', '2025-11-25 00:00:00', 10999,
+       ('Ботинки для сноуборда DC Mutiny Charcoal', 'Описание товара4 Ботинки для сноуборда DC Mutiny Charcoal', '/img/lot-4.jpg', '2025-11-25 00:00:00', 10999,
         100, 3, 1),
-       ('Куртка для сноуборда DC Mutiny Charcoal', 'Описание товара5', '/img/lot-5.jpg', '2025-12-01 00:19:00', 7500,
+       ('Куртка для сноуборда DC Mutiny Charcoal', 'Описание товара5 Куртка для сноуборда DC Mutiny Charcoal', '/img/lot-5.jpg', '2025-12-01 00:19:00', 7500,
         100, 4, 1),
-       ('Маска Oakley Canopy', 'Описание товара6', '/img/lot-6.jpg', '2025-12-15 00:00:00', 5400, 100, 6, 1);
+       ('Маска Oakley Canopy', 'Описание товара6 Маска Oakley Canopy', '/img/lot-6.jpg', '2025-12-15 00:00:00', 5400, 100, 6, 1);
 
 -- Запрос на добавление пары ставок
 INSERT INTO bids (user_id, lot_id, amount)
@@ -64,7 +64,7 @@ GROUP BY l.id
 ORDER BY l.start_time DESC
 LIMIT 6;
 
--- Запрос для получения лота по его ID + название категории (Пример: id = 1)
+-- Запрос для получения лота по его ID (Пример: id = 1)
 SELECT
     l.*,
     c.name AS category_name
