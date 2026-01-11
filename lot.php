@@ -26,6 +26,13 @@ if ($lot === null) {
     error404($isAuth, $userName, $categories);
 }
 
+try {
+    $lotBids = getLotBids($conn, $lotId);
+} catch (RuntimeException $e) {
+    error_log($e->getMessage());
+    exit('Ошибка при загрузке данных из БД');
+}
+
 $navigation = includeTemplate(
     'navigation.php',
     ['categories' => $categories]
@@ -36,6 +43,7 @@ $lotContent = includeTemplate(
     [
         'categories' => $categories,
         'lot' => $lot,
+        'lotBids' => $lotBids,
         'navigation' => $navigation
     ]
 );

@@ -75,6 +75,20 @@ function getDtRange(string $endDate): array
 }
 
 /**
+ * Возвращает CSS-класс таймера в зависимости от оставшегося времени. Если осталось меньше часа, то возвращается
+ * CSS-класс "timer--finishing", иначе — пустая строка.
+ *
+ * @param string $endDate Дата окончания аукциона
+ *
+ * @return string CSS-класс таймера или пустая строка
+ */
+function getTimerClass(string $endDate): string
+{
+    $dtRange = getDtRange($endDate);
+    return $dtRange['hours'] === 0 ? 'timer--finishing' : '';
+}
+
+/**
  * Преобразует массив с временем до конца аукциона в строку формата "ЧЧ:ММ".
  * @param array{hours: int, minutes: int} $dtRange Ассоциативный массив с количеством минут и часов до конца аукциона
  * @return string Отформатированная строка
