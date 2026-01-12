@@ -16,13 +16,9 @@ try {
 }
 
 $lotId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+$lot = null;
 
-if ($lotId === null || $lotId === false || $lotId <= 0) {
-    error404($isAuth, $userName, $categories);
-}
-
-$lot = getLotById($conn, $lotId);
-if ($lot === null) {
+if ($lotId === null || $lotId === false || $lotId <= 0 || ($lot = getLotById($conn, $lotId)) === null) {
     error404($isAuth, $userName, $categories);
 }
 
@@ -38,7 +34,7 @@ $navigation = includeTemplate(
     ['categories' => $categories]
 );
 
-$lotContent = includeTemplate(
+$mainContent = includeTemplate(
     'lot.php',
     [
         'categories' => $categories,
@@ -52,7 +48,7 @@ $layoutContent = includeTemplate(
     'layout.php',
     [
         'title' => $lot['name'],
-        'content' => $lotContent,
+        'content' => $mainContent,
         'navigation' => $navigation,
         'isAuth' => $isAuth,
         'userName' => $userName,

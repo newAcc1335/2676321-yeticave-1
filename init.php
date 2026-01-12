@@ -9,7 +9,7 @@ require_once __DIR__ . '/functions/template.php';
 require_once __DIR__ . '/functions/validators.php';
 require_once __DIR__ . '/functions/database.php';
 
-if (!file_exists("config.php")) {
+if (!file_exists('config.php')) {
     exit('Файл конфигурации не найден');
 }
 

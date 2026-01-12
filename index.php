@@ -6,6 +6,7 @@ require_once __DIR__ . '/init.php';
  * @var mysqli $conn
  * @var string $userName
  * @var int $isAuth
+ *
  */
 
 $title = 'Главная';

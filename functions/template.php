@@ -2,6 +2,7 @@
 
 /**
  * Подключает шаблон, передает туда данные и возвращает итоговый HTML контент
+ *
  * @param string $name Путь к файлу шаблона относительно папки templates
  * @param array $data Ассоциативный массив с данными для шаблона
  * @return string Итоговый HTML
@@ -25,6 +26,7 @@ function includeTemplate(string $name, array $data = []): string
 
 /**
  * Форматирует строку с ценой, разделяя по разрядам и добавляя знак рубля.
+ *
  * @param int|float $price Стоимость товара в рублях
  * @param bool $withRub Добавлять ли знак рубля. Если true - то с знаком, если false - без знака
  * @return string Отформатированная строка с ценой
@@ -42,6 +44,7 @@ function formatPrice(int|float $price, bool $withRub = true): string
 
 /**
  * Считает количество минут и часов до окончания аукциона.
+ *
  * @param string $endDate Дата окончания аукциона
  * @return array{hours: int, minutes: int} Ассоциативный массив с количеством минут и часов
  */
@@ -90,6 +93,7 @@ function getTimerClass(string $endDate): string
 
 /**
  * Преобразует массив с временем до конца аукциона в строку формата "ЧЧ:ММ".
+ *
  * @param array{hours: int, minutes: int} $dtRange Ассоциативный массив с количеством минут и часов до конца аукциона
  * @return string Отформатированная строка
  */
@@ -149,6 +153,8 @@ function getNounPluralForm(int $number, string $one, string $two, string $many):
 }
 
 /**
+ * Формирует страницу 404 с кодом ошибки без редиректа.
+ *
  * @param int $isAuth
  * @param string $userName
  * @param array $categories
