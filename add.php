@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $filePath = __DIR__ . '/uploads/';
-            $imgUrl = saveUploadedImage('image', $filePath);
+            $fileName = saveUploadedImage('image', $filePath);
 
             //пока id = 1
             $lotData = [
                 'title' => $_POST['title'],
                 'description' => $_POST['description'],
-                'image_url' => '/uploads/' . $imgUrl,
+                'image_url' => '/uploads/' . $fileName,
                 'end_time' => $_POST['end_time'],
                 'starting_price' => (int)($_POST['starting_price']),
                 'bid_step' => (int)($_POST['bid_step']),

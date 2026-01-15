@@ -1,8 +1,11 @@
 <?php
 
 /**
- * @param string $fieldName
- * @return string|null возвращает либо ошибку, либо нал
+ * Валидатор загруженного изображения.
+ *
+ * @param string $fieldName Имя поля формы с файлом
+ *
+ * @return string|null Сообщение об ошибке при невалидном файле или null, если файл валидный
  */
 function validateImage(string $fieldName): ?string
 {
@@ -32,11 +35,25 @@ function validateImage(string $fieldName): ?string
     return null;
 }
 
-function required($value): bool
+/**
+ * Возвращает валидатор, проверяющий, что поле было задано.
+ *
+ * @return callable(mixed): bool
+ */
+function required(): callable
 {
-    return !($value === null || $value === '');
+    return function ($value): bool {
+        return !($value === null || $value === '');
+    };
 }
 
+/**
+ * Возвращает валидатор, проверяющий, что длина строки не превышает данное значение.
+ *
+ * @param int $max Максимальная длина
+ *
+ * @return callable(mixed): bool
+ */
 function maxLength(int $max): callable
 {
     return function ($value) use ($max): bool {
@@ -44,50 +61,55 @@ function maxLength(int $max): callable
     };
 }
 
-function positiveInt($value): bool
+/**
+ * Возвращает валидатор, проверяющий, что значение является целым положительным числом.
+ *
+ * @return callable(mixed): bool
+ */
+function positiveInt(): callable
 {
-    return filter_var($value, FILTER_VALIDATE_INT) !== false && $value > 0;
+    return function ($value): bool {
+        return filter_var($value, FILTER_VALIDATE_INT) !== false && $value > 0;
+    };
 }
 
+/**
+ * Возвращает валидатор, проверяющий, что дата не раньше начала завтрашнего дня.
+ *
+ * Ожидается строка в формате 'ГГГГ-ММ-ДД'! (Будет работать для любой совместимой с strtotime())
+ *
+ * @return callable(mixed): bool
+ */
 function dateAtLeastTomorrow(): callable
 {
     return function ($value): bool {
-        if (!$value) {
-            return false;
-        }
-
-        $inputDate = strtotime($value);
-        $tomorrow = strtotime('+1 day');
-
-        return $inputDate >= $tomorrow;
+        $date = strtotime($value);
+        $tomorrow = strtotime('tomorrow');
+        return $date >= $tomorrow;
     };
 }
 
 
 /**
- * Проверяет переданную дату на соответствие формату 'ГГГГ-ММ-ДД'
+ *  Возвращает валидатор, проверяющий, что дата соответствует формату 'ГГГГ-ММ-ДД'.
  *
- * Примеры использования:
- * isDateValid('2019-01-01'); // true
- * isDateValid('2016-02-29'); // true
- * isDateValid('2019-04-31'); // false
- * isDateValid('10.10.2010'); // false
- * isDateValid('10/10/2010'); // false
- *
- * @param string $date Дата в виде строки
- *
- * @return bool true при совпадении с форматом 'ГГГГ-ММ-ДД', иначе false
+ * @return callable(mixed): bool
  */
-function isDateValid($date): bool
+function dateYmd(): callable
 {
-    $format_to_check = 'Y-m-d';
-    $dateTimeObj = date_create_from_format($format_to_check, $date);
+    return function ($value): bool {
+        if (!is_string($value)) {
+            return false;
+        }
 
-    $errors = date_get_last_errors();
+        $format = 'Y-m-d';
+        $dateTimeObj = date_create_from_format($format, $value);
+        $errors = date_get_last_errors();
 
-    if ($errors === false) {
-        return $dateTimeObj !== false;
-    }
+        if ($errors === false) {
+            return $dateTimeObj !== false;
+        }
 
-    return $dateTimeObj !== false && array_sum($errors) === 0;
+        return $dateTimeObj !== false && array_sum($errors) === 0;
+    };
 }

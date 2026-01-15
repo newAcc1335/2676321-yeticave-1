@@ -225,7 +225,6 @@ function dbGetPrepareStmt(mysqli $link, string $sql, array $data = []): mysqli_s
         if (mysqli_errno($link) > 0) {
             $errorMsg = 'Не удалось связать подготовленное выражение с параметрами: ' . mysqli_error($link);
             throw new RuntimeException($errorMsg);
-//            die($errorMsg);
         }
     }
 
@@ -236,17 +235,7 @@ function dbGetPrepareStmt(mysqli $link, string $sql, array $data = []): mysqli_s
  * Добавляет новый лот в базу данных
  *
  * @param mysqli $conn Соединение с базой данных
- * @param array{
- *     title: string,
- *     description: string,
- *     image_url: string,
- *     end_time: string,
- *     starting_price: int,
- *     bid_step: int,
- *     category_id: int,
- *     creator_id: int
- * } $data
- *
+ * @param array $data Массив с данными лота
  * @return int ID созданного лота
  *
  * @throws RuntimeException В случае ошибки выполнения запроса

@@ -1,6 +1,16 @@
 <?php
 
-function saveUploadedImage(string $fieldName, string $filePath): ?string
+/**
+ * Сохраняет загруженное изображение на диск (перемещает из временного хранилища в указанную директорию).
+ *
+ * @param string $fieldName Имя поля формы с загружаемым файлом
+ * @param string $filePath Путь к директории для сохранения файла
+ *
+ * @return string Имя сохранённого файла
+ *
+ * @throws RuntimeException Если не удалось сохранить файл или недопустимый тип файла
+ */
+function saveUploadedImage(string $fieldName, string $filePath): string
 {
     $tmpName = $_FILES[$fieldName]['tmp_name'];
 
