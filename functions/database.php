@@ -72,7 +72,7 @@ function dbFetchOne(mysqli $conn, string $sql): ?array
  */
 function getCategories(mysqli $conn): array
 {
-    $sql = 'SELECT name, modifier FROM categories';
+    $sql = 'SELECT id, name, modifier FROM categories';
     return dbFetchAll($conn, $sql);
 }
 
@@ -184,6 +184,8 @@ function getLotBids(mysqli $conn, int $lotId): array
  * @param array $data Данные для вставки на место плейсхолдеров
  *
  * @return mysqli_stmt Подготовленное выражение
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function dbGetPrepareStmt(mysqli $link, string $sql, array $data = []): mysqli_stmt
 {
@@ -222,9 +224,51 @@ function dbGetPrepareStmt(mysqli $link, string $sql, array $data = []): mysqli_s
 
         if (mysqli_errno($link) > 0) {
             $errorMsg = 'Не удалось связать подготовленное выражение с параметрами: ' . mysqli_error($link);
-            die($errorMsg);
+            throw new RuntimeException($errorMsg);
         }
     }
 
     return $stmt;
+}
+
+/**
+ * Добавляет новый лот в базу данных
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @param array $data Массив с данными лота
+ * @return int ID созданного лота
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function addLot(mysqli $conn, array $data): int
+{
+    $sql = '
+        INSERT INTO lots (
+            title,
+            description,
+            image_url,
+            end_time,
+            starting_price,
+            bid_step,
+            category_id,
+            creator_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ';
+
+    $stmt = dbGetPrepareStmt($conn, $sql, [
+        $data['title'],
+        $data['description'],
+        $data['image_url'],
+        $data['end_time'],
+        (int)$data['starting_price'],
+        (int)$data['bid_step'],
+        (int)$data['category_id'],
+        (int)$data['creator_id'],
+    ]);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Не удалось добавить лот в базу данных');
+    }
+
+    return $conn->insert_id;
 }

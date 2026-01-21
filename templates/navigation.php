@@ -1,6 +1,6 @@
 <?php
 /**
- * @var array<int, array{name: string, modifier: string}> $categories
+ * @var array $categories
  */
 
 ?>
