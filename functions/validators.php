@@ -31,7 +31,7 @@ function validateForm(array $inputs, array $rules): array
     $errors = [];
 
     foreach ($rules as $field => $validRules) {
-        $fieldValue = $inputs[$field];
+        $fieldValue = $inputs[$field] ?? null;
 
         foreach ($validRules as $valid) {
             if ($valid['rule']($fieldValue) === false) {
@@ -128,4 +128,77 @@ function validateAddLotForm(array $inputs): array
     }
 
     return $errors;
+}
+
+/**
+ * Валидирует данные формы добавления лота.
+ *
+ * @param array $inputs Массив с данными формы
+ * @param mysqli $conn Соединение с базой данных
+ *
+ * @return array Массив с ошибками или пустой массив, если ошибок нет
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса для проверки e-mail.
+ */
+function validateRegisterForm(array $inputs, mysqli $conn): array
+{
+    $rules = [
+        'email' => [
+            [
+                'rule' => required(),
+                'message' => 'Введите e-mail',
+            ],
+            [
+                'rule' => maxLength(255),
+                'message' => 'E-mail не должен превышать 255 символов',
+            ],
+            [
+                'rule' => email(),
+                'message' => 'Введите корректный e-mail',
+            ],
+            [
+                'rule' => emailNotExists($conn),
+                'message' => 'Данный e-mail уже зарегистрирован',
+            ],
+        ],
+
+        'password' => [
+            [
+                'rule' => required(),
+                'message' => 'Введите пароль',
+            ],
+            [
+                'rule' => minLength(5),
+                'message' => 'Пароль не может быть короче 5 символов',
+            ],
+            [
+                'rule' => maxLength(72),
+                'message' => 'Пароль не может быть длиннее 72 символов',
+            ],
+        ],
+
+        'name' => [
+            [
+                'rule' => required(),
+                'message' => 'Введите имя',
+            ],
+            [
+                'rule' => maxLength(100),
+                'message' => 'Имя не должно превышать 100 символов',
+            ],
+        ],
+
+        'contactInfo' => [
+            [
+                'rule' => required(),
+                'message' => 'Напишите как с вами связаться',
+            ],
+            [
+                'rule' => maxLength(2000),
+                'message' => 'Контактная информация не должна превышать 2000 символов',
+            ],
+        ],
+    ];
+
+    return validateForm($inputs, $rules);;
 }
