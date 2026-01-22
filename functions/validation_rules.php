@@ -62,6 +62,20 @@ function maxLength(int $max): callable
 }
 
 /**
+ * Возвращает валидатор, проверяющий, что длина строки не меньше данного значения.
+ *
+ * @param int $min Минимальная длина
+ *
+ * @return callable(mixed): bool
+ */
+function minLength(int $min): callable
+{
+    return function ($value) use ($min): bool {
+        return is_string($value) && mb_strlen($value) >= $min;
+    };
+}
+
+/**
  * Возвращает валидатор, проверяющий, что значение является целым положительным числом.
  *
  * @return callable(mixed): bool
@@ -111,5 +125,43 @@ function dateYmd(): callable
         }
 
         return $dateTimeObj !== false && array_sum($errors) === 0;
+    };
+}
+
+/**
+ * Возвращает валидатор, проверяющий, что значение является корректным email-адресом.
+ *
+ * @return callable(mixed): bool
+ */
+function email(): callable
+{
+    return function ($value): bool {
+        return is_string($value) && filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
+    };
+}
+
+/**
+ * Возвращает валидатор, проверяющий, что e-mail ещё не зарегистрирован.
+ *
+ * @param mysqli $conn Соединение с базой данных
+ *
+ * @return callable(mixed): bool
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function emailNotExists(mysqli $conn): callable
+{
+    return function ($email) use ($conn): bool {
+        $sql = 'SELECT id FROM users WHERE email = ?';
+
+        $stmt = dbGetPrepareStmt($conn, $sql, [$email]);
+
+        if (!$stmt->execute()) {
+            throw new RuntimeException('Не удалось проверить е-mail');
+        }
+
+        $result = $stmt->get_result();
+
+        return $result->num_rows === 0;
     };
 }

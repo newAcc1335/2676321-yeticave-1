@@ -272,3 +272,43 @@ function addLot(mysqli $conn, array $data): int
 
     return $conn->insert_id;
 }
+
+/**
+ * Добавляет нового пользователя в базу данных
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @param array{
+ *     name: string,
+ *     email: string,
+ *     password_hash: string,
+ *     contact_info: string
+ * } $data Массив с данными пользователя
+ *
+ * @return int ID созданного пользователя
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function addUser(mysqli $conn, array $data): int
+{
+    $sql = '
+        INSERT INTO users (
+            name,
+            email,
+            password_hash,
+            contact_info
+        ) VALUES (?, ?, ?, ?)
+    ';
+
+    $stmt = dbGetPrepareStmt($conn, $sql, [
+        $data['name'],
+        $data['email'],
+        $data['password_hash'],
+        $data['contact_info'],
+    ]);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Не удалось добавить пользователя в базу данных');
+    }
+
+    return $conn->insert_id;
+}

@@ -1,7 +1,6 @@
 <?php
 
 require_once __DIR__ . '/init.php';
-require_once __DIR__ . '/functions/file.php';
 
 /**
  * @var mysqli $conn
@@ -19,37 +18,33 @@ try {
 $form = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $errors = validateAddLotForm($_POST);
-
+    try {
+        $errors = validateRegisterForm($_POST, $conn);
+    } catch (RuntimeException $e) {
+        error_log($e->getMessage());
+        exit('Ошибка при проверке уникальности e-mail в БД');
+    }
 
     if (!empty($errors)) {
         $form['errors'] = $errors;
         $form['data'] = $_POST;
     } else {
+        $user = [
+            'name' => $_POST['name'],
+            'email' => $_POST['email'],
+            'password_hash' => password_hash($_POST['password'], PASSWORD_DEFAULT),
+            'contact_info' => $_POST['contactInfo'],
+        ];
+
         try {
-            $filePath = __DIR__ . '/uploads/';
-            $fileName = saveUploadedImage('image', $filePath);
-
-            //пока id = 1
-            $lot = [
-                'title' => $_POST['title'],
-                'description' => $_POST['description'],
-                'image_url' => '/uploads/' . $fileName,
-                'end_time' => $_POST['end_time'],
-                'starting_price' => (int)($_POST['starting_price']),
-                'bid_step' => (int)($_POST['bid_step']),
-                'category_id' => (int)($_POST['category']),
-                'creator_id' => 1,
-            ];
-
-            $lotId = addLot($conn, $lot);
-
-            header("Location: /lot.php?id={$lotId}");
-            exit();
+            addUser($conn, $user);
         } catch (RuntimeException $e) {
             error_log($e->getMessage());
-            exit('Ошибка при добавлении лота');
+            exit('Ошибка при регистрации нового аккаунта');
         }
+
+        header("Location: /");
+        exit();
     }
 }
 
@@ -59,7 +54,7 @@ $navigation = includeTemplate(
 );
 
 $mainContent = includeTemplate(
-    'add.php',
+    'register.php',
     [
         'categories' => $categories,
         'navigation' => $navigation,
