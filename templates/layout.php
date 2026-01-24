@@ -3,8 +3,7 @@
  * @var string $title
  * @var string $content
  * @var string $navigation
- * @var string $userName
- * @var int $isAuth
+ * @var array $user
  * @var array $categories
  */
 
@@ -36,11 +35,11 @@
 
             <nav class="user-menu">
                 <?php
-                if ($isAuth === 1) : ?>
+                if (!empty($user)) : ?>
                     <div class="user-menu__logged">
-                        <p><?= $userName; ?></p>
+                        <p><?= $user['name']; ?></p>
                         <a class="user-menu__bets" href="/pages/my-bets.html">Мои ставки</a>
-                        <a class="user-menu__logout" href="#">Выход</a>
+                        <a class="user-menu__logout" href="/logout.php">Выход</a>
                     </div>
                 <?php
                 else : ?>
@@ -49,7 +48,7 @@
                             <a href="/register.php">Регистрация</a>
                         </li>
                         <li class="user-menu__item">
-                            <a href="#">Вход</a>
+                            <a href="/login.php">Вход</a>
                         </li>
                     </ul>
                 <?php

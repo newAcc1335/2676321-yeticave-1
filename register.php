@@ -4,8 +4,7 @@ require_once __DIR__ . '/init.php';
 
 /**
  * @var mysqli $conn
- * @var string $userName
- * @var int $isAuth
+ * @var array $user
  */
 
 try {
@@ -13,6 +12,10 @@ try {
 } catch (RuntimeException $e) {
     error_log($e->getMessage());
     exit('Ошибка при загрузке данных из БД');
+}
+
+if (!empty($user)) {
+    renderErrorPage($user, $categories, 403, 'Доступ запрещен. Только для неавторизованных пользователей');
 }
 
 $form = [];
@@ -65,11 +68,10 @@ $mainContent = includeTemplate(
 $layoutContent = includeTemplate(
     'layout.php',
     [
-        'title' => 'Добавление лота',
+        'title' => 'Регистрация',
         'content' => $mainContent,
         'navigation' => $navigation,
-        'isAuth' => $isAuth,
-        'userName' => $userName,
+        'user' => $user,
         'categories' => $categories,
     ]
 );

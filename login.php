@@ -14,19 +14,25 @@ try {
     exit('Ошибка при загрузке данных из БД');
 }
 
-$lotId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-$lot = null;
+$form = [];
 
-if ($lotId === null || $lotId === false || $lotId <= 0 || ($lot = getLotById($conn, $lotId)) === null) {
-    renderErrorPage($user, $categories, 404, 'Страница не найдена');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $errors = validateLoginForm($_POST);
+    $userId = null;
+
+    if (!empty($errors)) {
+        $form['errors'] = $errors;
+        $form['data'] = $_POST;
+    } elseif ($userId = authenticateUser($conn, $_POST['email'], $_POST['password']) === null) {
+        $form['errors'] = ['email' => 'Вы ввели неверный email/пароль', 'password' => 'Вы ввели неверный email/пароль'];
+        $form['data'] = $_POST;
+    } else {
+        $_SESSION['userId'] = $userId;
+        header("Location: /");
+        exit();
+    }
 }
 
-try {
-    $lotBids = getLotBids($conn, $lotId);
-} catch (RuntimeException $e) {
-    error_log($e->getMessage());
-    exit('Ошибка при загрузке данных из БД');
-}
 
 $navigation = includeTemplate(
     'navigation.php',
@@ -34,20 +40,17 @@ $navigation = includeTemplate(
 );
 
 $mainContent = includeTemplate(
-    'lot.php',
+    'login.php',
     [
-        'categories' => $categories,
-        'lot' => $lot,
-        'lotBids' => $lotBids,
         'navigation' => $navigation,
-        'user' => $user,
+        'form' => $form,
     ]
 );
 
 $layoutContent = includeTemplate(
     'layout.php',
     [
-        'title' => $lot['name'],
+        'title' => 'Вход',
         'content' => $mainContent,
         'navigation' => $navigation,
         'user' => $user,

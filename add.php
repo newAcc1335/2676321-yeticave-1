@@ -5,8 +5,7 @@ require_once __DIR__ . '/functions/file.php';
 
 /**
  * @var mysqli $conn
- * @var string $userName
- * @var int $isAuth
+ * @var array $user
  */
 
 try {
@@ -16,12 +15,15 @@ try {
     exit('Ошибка при загрузке данных из БД');
 }
 
+if (empty($user)) {
+    renderErrorPage($user, $categories, 403, 'Доступ запрещен. Необходимо авторизоваться');
+}
+
 $form = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = validateAddLotForm($_POST);
-
-
+    
     if (!empty($errors)) {
         $form['errors'] = $errors;
         $form['data'] = $_POST;
@@ -30,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $filePath = __DIR__ . '/uploads/';
             $fileName = saveUploadedImage('image', $filePath);
 
-            //пока id = 1
             $lot = [
                 'title' => $_POST['title'],
                 'description' => $_POST['description'],
@@ -39,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'starting_price' => (int)($_POST['starting_price']),
                 'bid_step' => (int)($_POST['bid_step']),
                 'category_id' => (int)($_POST['category']),
-                'creator_id' => 1,
+                'creator_id' => $user['id'],
             ];
 
             $lotId = addLot($conn, $lot);
@@ -73,8 +74,7 @@ $layoutContent = includeTemplate(
         'title' => 'Добавление лота',
         'content' => $mainContent,
         'navigation' => $navigation,
-        'isAuth' => $isAuth,
-        'userName' => $userName,
+        'user' => $user,
         'categories' => $categories,
     ]
 );
