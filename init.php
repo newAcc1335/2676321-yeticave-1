@@ -22,5 +22,9 @@ try {
     exit('Ошибка подключения к базе данных');
 }
 
-$isAuth = rand(0, 1);
-$userName = 'Pavel';
+session_start();
+$user = [];
+
+if (isset($_SESSION['userId'])) {
+    $user = getUserById($conn, $_SESSION['userId']) ?? [];
+}

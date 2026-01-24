@@ -1,5 +1,7 @@
 <?php
 
+use JetBrains\PhpStorm\NoReturn;
+
 /**
  * Подключает шаблон, передает туда данные и возвращает итоговый HTML контент
  *
@@ -153,14 +155,15 @@ function getNounPluralForm(int $number, string $one, string $two, string $many):
 }
 
 /**
- * Формирует страницу 404 с кодом ошибки без редиректа.
+ * Формирует страницу с кодом ошибки без редиректа.
  *
- * @param int $isAuth
- * @param string $userName
- * @param array $categories
+ * @param array $user Массив с данными юзера, который авторизован на сайте, или пустой массив если такого нет
+ * @param array $categories Массив категорий
+ * @param int $codeErr Код ошибки
+ * @param string $message Сообщение, которое будет показано на странице ошибки
  * @return void
  */
-function error404(int $isAuth, string $userName, array $categories): void
+function renderErrorPage(array $user, array $categories, int $codeErr, string $message): void
 {
     $navigation = includeTemplate(
         'navigation.php',
@@ -168,26 +171,26 @@ function error404(int $isAuth, string $userName, array $categories): void
     );
 
     $mainContent = includeTemplate(
-        '404.php',
+        'error.php',
         [
-            'categories' => $categories,
-            'navigation' => $navigation
+            'navigation' => $navigation,
+            'message' => $message,
+            'codeErr' => $codeErr,
         ]
     );
 
     $layoutContent = includeTemplate(
         'layout.php',
         [
-            'title' => 'Страницы не существует',
+            'title' => "Ошибка {$codeErr}",
             'content' => $mainContent,
             'navigation' => $navigation,
-            'isAuth' => $isAuth,
-            'userName' => $userName,
+            'user' => $user,
             'categories' => $categories,
         ]
     );
 
-    http_response_code(404);
+    http_response_code($codeErr);
 
     print $layoutContent;
 

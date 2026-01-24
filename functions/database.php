@@ -312,3 +312,65 @@ function addUser(mysqli $conn, array $data): int
 
     return $conn->insert_id;
 }
+
+/**
+ * Аутентификация пользователя по email и паролю.
+ *
+ * @param mysqli $conn Соединение с базой данных MySQL
+ * @param string $email E-mail пользователя
+ * @param string $password Пароль пользователя
+ *
+ * @return int|null id пользователя при успешной аутентификации,
+ *         или null, если e-mail или пароль неверны
+ *
+ * @throws RuntimeException В случае ошибки выполнения SQL-запроса
+ */
+function authenticateUser(mysqli $conn, string $email, string $password): ?int
+{
+    $sql = 'SELECT id, password_hash FROM users WHERE email = ?';
+
+    $stmt = dbGetPrepareStmt($conn, $sql, [$email]);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Не удалось выполнить запрос для аутентификации');
+    }
+
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+
+    if (!$user || !password_verify($password, $user['password_hash'])) {
+        return null;
+    }
+
+    return $user['id'];
+}
+
+/**
+ *  Ищет пользователя по его ID.
+ *
+ * @param mysqli $conn Соединение с базой данных MySQL
+ * @param int $userId ID пользователя
+ *
+ * @return array{
+ *     id: int,
+ *     name: string,
+ *     email: string,
+ *     contact_info: string
+ * }|null Данные пользователя или null, если пользователь не найден
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function getUserById(mysqli $conn, int $userId): ?array
+{
+    $sql = "
+        SELECT
+            id,
+            name,
+            email,
+            contact_info
+        FROM users
+        WHERE id = {$userId}
+    ";
+
+    return dbFetchOne($conn, $sql);
+}

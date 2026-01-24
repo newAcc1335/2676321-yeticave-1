@@ -202,3 +202,34 @@ function validateRegisterForm(array $inputs, mysqli $conn): array
 
     return validateForm($inputs, $rules);;
 }
+
+/**
+ * Валидирует данные формы авторизации.
+ *
+ * @param array $inputs Массив с данными формы
+ * @return array Массив с ошибками или пустой массив, если ошибок нет
+ */
+function validateLoginForm(array $inputs): array
+{
+    $rules = [
+        'email' => [
+            [
+                'rule' => required(),
+                'message' => 'Введите e-mail',
+            ],
+            [
+                'rule' => email(),
+                'message' => 'Введите корректный e-mail',
+            ],
+        ],
+
+        'password' => [
+            [
+                'rule' => required(),
+                'message' => 'Введите пароль',
+            ],
+        ],
+    ];
+
+    return validateForm($inputs, $rules);;
+}

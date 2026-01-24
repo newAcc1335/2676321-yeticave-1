@@ -6,6 +6,7 @@ require_once __DIR__ . '/init.php';
  * @var mysqli $conn
  * @var string $userName
  * @var int $isAuth
+ * @var array $user
  *
  */
 
@@ -35,8 +36,7 @@ $layoutContent = includeTemplate(
         'title' => $title,
         'content' => $mainContent,
         'navigation' => $navigation,
-        'isAuth' => $isAuth,
-        'userName' => $userName,
+        'user' => $user,
         'categories' => $categories,
     ]
 );
