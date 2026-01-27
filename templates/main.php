@@ -1,15 +1,7 @@
 <?php
 /**
- * @var array<int, array{name: string, modifier: string}> $categories
- * @var array<int, array{
- *      id: int,
- *      name: string,
- *      category: string,
- *      price: int,
- *      startingPrice: int,
- *      imageUrl: string,
- *      endTime: string
- *  }> $lots
+ * @var array $categories
+ * @var array $lots
  */
 
 ?>
@@ -33,33 +25,7 @@
         <div class="lots__header">
             <h2>Открытые лоты</h2>
         </div>
-        <ul class="lots__list">
-            <?php
-            foreach ($lots as $lot) : ?>
-                <li class="lots__item lot">
-                    <div class="lot__image">
-                        <img src="<?= $lot['imageUrl']; ?>" width="350" height="260" alt="">
-                    </div>
-                    <div class="lot__info">
-                        <span class="lot__category"><?= htmlspecialchars($lot['category']); ?></span>
-                        <h3 class="lot__title">
-                            <a class="text-link" href="/lot.php?id=<?= $lot['id']; ?>">
-                                <?= htmlspecialchars($lot['name']); ?>
-                            </a></h3>
-                        <div class="lot__state">
-                            <div class="lot__rate">
-                                <span class="lot__amount">Стартовая цена</span>
-                                <span class="lot__cost"><?= formatPrice($lot['startingPrice']); ?></span>
-                            </div>
-                            <div class="lot__timer timer <?= getTimerClass($lot['endTime']); ?>">
-                                <?= formatRange(getDtRange($lot['endTime'])); ?>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            <?php
-            endforeach; ?>
-        </ul>
+        <?= includeTemplate('lots-list.php', ['lots' => $lots]); ?>
     </section>
 </main>
 
