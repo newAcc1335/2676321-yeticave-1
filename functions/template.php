@@ -1,7 +1,5 @@
 <?php
 
-use JetBrains\PhpStorm\NoReturn;
-
 /**
  * Подключает шаблон, передает туда данные и возвращает итоговый HTML контент
  *
@@ -107,7 +105,6 @@ function formatRange(array $dtRange): string
     return $hours . ':' . $minutes;
 }
 
-
 /**
  * Возвращает корректную форму множественного числа
  * Ограничения: только для целых чисел
@@ -195,4 +192,39 @@ function renderErrorPage(array $user, array $categories, int $codeErr, string $m
     print $layoutContent;
 
     exit();
+}
+
+/**
+ * Возвращает строку, показывающую сколько времени прошло с объявления ставки.
+ *
+ * @param string $createdAt Время создания ставки (формат, поддерживающий DateTime)
+ * @return string Строка с указанием прошедшего времени или 'недавно', если произошла ошибка
+ */
+function formatTimeAgo(string $createdAt): string
+{
+    $now = new DateTime();
+    try {
+        $created = new DateTime($createdAt);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return 'недавно';
+    }
+
+    $diff = $now->diff($created);
+
+    if ($diff->invert === 0) {
+        return 'недавно';
+    }
+
+    $hours = $diff->h + $diff->days * 24;
+    $minutes = $diff->i;
+
+    if ($hours === 0) {
+        if ($minutes === 0) {
+            return 'менее минуты назад';
+        }
+        return $minutes . ' ' . getNounPluralForm($minutes, 'минута', 'минуты', 'минут') . ' назад';
+    }
+
+    return $hours . ' ' . getNounPluralForm($hours, 'час', 'часа', 'часов') . ' назад';
 }

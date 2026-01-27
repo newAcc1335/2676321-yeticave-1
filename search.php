@@ -5,14 +5,8 @@ require_once __DIR__ . '/init.php';
 /**
  * @var mysqli $conn
  * @var array $user
+ * @var array $categories
  */
-
-try {
-    $categories = getCategories($conn);
-} catch (RuntimeException $e) {
-    error_log($e->getMessage());
-    exit('Ошибка при загрузке данных из БД');
-}
 
 $search = trim(filter_input(INPUT_GET, 'search', FILTER_SANITIZE_SPECIAL_CHARS));
 $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?? 1;

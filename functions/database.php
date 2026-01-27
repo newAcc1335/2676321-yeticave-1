@@ -118,6 +118,7 @@ function getLotById(mysqli $conn, int $lotId): ?array
 {
     $sql = "
         SELECT
+            l.id as id,
             l.title AS name,
             l.description,
             l.starting_price AS startingPrice,
@@ -434,4 +435,39 @@ function countLotsBySearch(mysqli $conn, string $query): int
     $result = $stmt->get_result()->fetch_assoc();
 
     return (int)$result['count'];
+}
+
+/**
+ * Добавляет новую ставку для лота.
+ *
+ * @param mysqli $conn Соединение с БД
+ * @param int $userId ID пользователя
+ * @param int $lotId ID лота
+ * @param int $amount Сумма ставки
+ *
+ * @return int ID созданной ставки
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function addBid(mysqli $conn, int $userId, int $lotId, int $amount): int
+{
+    $sql = '
+        INSERT INTO bids (
+            user_id,
+            lot_id,
+            amount
+        ) VALUES (?, ?, ?)
+    ';
+
+    $stmt = dbGetPrepareStmt($conn, $sql, [
+        $userId,
+        $lotId,
+        $amount
+    ]);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Ошибка при добававлении ставки');
+    }
+
+    return $conn->insert_id;
 }

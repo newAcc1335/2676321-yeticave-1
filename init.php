@@ -28,3 +28,10 @@ $user = [];
 if (isset($_SESSION['userId'])) {
     $user = getUserById($conn, $_SESSION['userId']) ?? [];
 }
+
+try {
+    $categories = getCategories($conn);
+} catch (RuntimeException $e) {
+    error_log($e->getMessage());
+    exit('Ошибка при загрузке категорий из БД');
+}

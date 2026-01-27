@@ -200,7 +200,7 @@ function validateRegisterForm(array $inputs, mysqli $conn): array
         ],
     ];
 
-    return validateForm($inputs, $rules);;
+    return validateForm($inputs, $rules);
 }
 
 /**
@@ -231,5 +231,41 @@ function validateLoginForm(array $inputs): array
         ],
     ];
 
-    return validateForm($inputs, $rules);;
+    return validateForm($inputs, $rules);
+}
+
+/**
+ * Валидирует данные формы авторизации.
+ *
+ * @param array $inputs Массив с данными формы
+ * @param array $lotBids Массив с ставками к данном лоту
+ * @param array $user Авторизованный пользователь
+ * @param array $lot Лот, на который делают ставку
+ *
+ * @return array Массив с ошибками или пустой массив, если ошибок нет
+ */
+function validateAddBidForm(array $inputs, array $lotBids, array $user, array $lot): array
+{
+    $rules = [
+        'cost' => [
+            [
+                'rule' => notSameAsLastUser($user, $lotBids),
+                'message' => 'Нельзя перебивать свою же ставку',
+            ],
+            [
+                'rule' => required(),
+                'message' => 'Введите свою ставку',
+            ],
+            [
+                'rule' => positiveInt(),
+                'message' => 'Ставка должна быть целым положительным числом',
+            ],
+            [
+                'rule' => validateBidStep($lot['price'], $lot['step'], !empty($lotBids)),
+                'message' => 'Не соблюден шаг ставки',
+            ],
+        ]
+    ];
+
+    return validateForm($inputs, $rules);
 }

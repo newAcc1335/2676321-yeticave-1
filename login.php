@@ -5,14 +5,8 @@ require_once __DIR__ . '/init.php';
 /**
  * @var mysqli $conn
  * @var array $user
+ * @var array $categories
  */
-
-try {
-    $categories = getCategories($conn);
-} catch (RuntimeException $e) {
-    error_log($e->getMessage());
-    exit('Ошибка при загрузке данных из БД');
-}
 
 $form = [];
 
@@ -32,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
-
 
 $navigation = includeTemplate(
     'navigation.php',
