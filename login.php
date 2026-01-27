@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($errors)) {
         $form['errors'] = $errors;
         $form['data'] = $_POST;
-    } elseif ($userId = authenticateUser($conn, $_POST['email'], $_POST['password']) === null) {
+    } elseif (($userId = authenticateUser($conn, $_POST['email'], $_POST['password'])) === null) {
         $form['errors'] = ['email' => 'Вы ввели неверный email/пароль', 'password' => 'Вы ввели неверный email/пароль'];
         $form['data'] = $_POST;
     } else {

@@ -3,7 +3,7 @@
 /**
  * Создаёт и возвращает соединение с базой данных MySQL.
  *
- * @param array{host: string, user: string, password: string, database: string} $db_config
+ * @param array $db_config
  * @return mysqli Соединение с базой данных
  * @throws RuntimeException Исключение в случие ошибки при подключении
  */
@@ -30,7 +30,7 @@ function getDbConnect(array $db_config): mysqli
  *
  * @param mysqli $conn Соединение с базой данных MySQL
  * @param string $sql SQL-запрос
- * @return array<int, array<string, string|float|int>>|null Результат запроса или null, если строк не найдено
+ * @return array|null Результат запроса или null, если строк не найдено
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function dbFetchAll(mysqli $conn, string $sql): ?array
@@ -49,7 +49,7 @@ function dbFetchAll(mysqli $conn, string $sql): ?array
  *
  * @param mysqli $conn Соединение с базой данных MySQL
  * @param string $sql SQL-запрос
- * @return array<string, string|float|int>|null Результат запроса или null, если строка не найдена
+ * @return array|null Результат запроса или null, если строка не найдена
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function dbFetchOne(mysqli $conn, string $sql): ?array
@@ -80,14 +80,7 @@ function getCategories(mysqli $conn): array
  * Возвращает последние активные лоты. Максимум 6 штук
  *
  * @param mysqli $conn Соединение с базой данных
- * @return array<int, array{
- *     name: string,
- *     startingPrice: int,
- *     price: int,
- *     imageUrl: string,
- *     endTime: string,
- *     category: string
- * }> Массив, состоящий из последних лотов, или пустой массив, если активных лотов нет
+ * @return array Массив, состоящий из последних лотов, или пустой массив, если активных лотов нет
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function getLots(mysqli $conn): array
@@ -118,7 +111,7 @@ function getLots(mysqli $conn): array
  *
  * @param mysqli $conn Соединение с базой данных
  * @param int $lotId id лота
- * @return array<string, string|int|float>|null Ассоциативный массив с данными лота или null, если лот не найден
+ * @return array|null Ассоциативный массив с данными лота или null, если лот не найден
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function getLotById(mysqli $conn, int $lotId): ?array
@@ -150,12 +143,7 @@ function getLotById(mysqli $conn, int $lotId): ?array
  * @param mysqli $conn Соединение с базой данных
  * @param int $lotId ID лота
  *
- * @return array<int, array{
- *     amount: int,
- *     createdAt: string,
- *     userName: string,
- *     userId: int
- * }> Массив ставок или пустой массив, если ставок нет
+ * @return array Массив ставок или пустой массив, если ставок нет
  *
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
@@ -277,12 +265,7 @@ function addLot(mysqli $conn, array $data): int
  * Добавляет нового пользователя в базу данных
  *
  * @param mysqli $conn Соединение с базой данных
- * @param array{
- *     name: string,
- *     email: string,
- *     password_hash: string,
- *     contact_info: string
- * } $data Массив с данными пользователя
+ * @param array $data Массив с данными пользователя
  *
  * @return int ID созданного пользователя
  *
@@ -351,12 +334,7 @@ function authenticateUser(mysqli $conn, string $email, string $password): ?int
  * @param mysqli $conn Соединение с базой данных MySQL
  * @param int $userId ID пользователя
  *
- * @return array{
- *     id: int,
- *     name: string,
- *     email: string,
- *     contact_info: string
- * }|null Данные пользователя или null, если пользователь не найден
+ * @return array|null Данные пользователя или null, если пользователь не найден
  *
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
@@ -373,4 +351,87 @@ function getUserById(mysqli $conn, int $userId): ?array
     ";
 
     return dbFetchOne($conn, $sql);
+}
+
+/**
+ * Выполняет полнотекстовый поиск лотов по названию и описанию с пагинацией.
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @param string $query Поисковый запрос
+ * @param int $page Номер страницы
+ * @param int $limit Количество лотов на странице
+ *
+ * @return array Массив найденных лотов
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function getLotsBySearch(mysqli $conn, string $query, int $page, int $limit = 9): array
+{
+    $offset = ($page - 1) * $limit;
+
+    $sql = '
+        SELECT
+            l.id,
+            l.title AS name,
+            l.starting_price AS startingPrice,
+            l.image_url AS imageUrl,
+            l.end_time AS endTime,
+            c.name AS category,
+            COALESCE(MAX(b.amount), l.starting_price) AS price
+        FROM lots l
+        JOIN categories c ON c.id = l.category_id
+        LEFT JOIN bids b ON b.lot_id = l.id
+        WHERE
+            MATCH(l.title, l.description) AGAINST (? IN BOOLEAN MODE)
+            AND l.end_time > NOW()
+        GROUP BY l.id
+        ORDER BY l.start_time DESC
+        LIMIT ? OFFSET ?
+    ';
+
+    $stmt = dbGetPrepareStmt($conn, $sql, [
+        $query,
+        $limit,
+        $offset
+    ]);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Ошибка поиска лотов');
+    }
+
+    $result = $stmt->get_result();
+
+    return $result->fetch_all(MYSQLI_ASSOC) ?: [];
+}
+
+/**
+ * Подсчитывает количество активных лотов, соответствующих поисковому запросу.
+ * Выполняет полнотекстовый поиск по наименованиям и описаниям лотов.
+ *
+ * @param mysqli $conn Подключение к базе данных
+ * @param string $query Поисковый запрос для полнотекстового поиска
+ *
+ * @return int Количество лотов
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function countLotsBySearch(mysqli $conn, string $query): int
+{
+    $sql = '
+        SELECT COUNT(*) AS count
+        FROM lots
+        WHERE
+            MATCH(title, description) AGAINST (? IN BOOLEAN MODE)
+            AND end_time > NOW()
+    ';
+
+    $stmt = dbGetPrepareStmt($conn, $sql, [$query]);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Ошибка подсчёта лотов');
+    }
+
+    $result = $stmt->get_result()->fetch_assoc();
+
+    return (int)$result['count'];
 }

@@ -52,3 +52,5 @@ CREATE TABLE IF NOT EXISTS bids (
     FOREIGN KEY (lot_id) REFERENCES lots (id),
     INDEX idx_created_at (created_at)
 );
+
+CREATE FULLTEXT INDEX ft_search ON lots (title, description);
