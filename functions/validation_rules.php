@@ -187,16 +187,20 @@ function validateBidStep(int $price, int $step, bool $hasBids): callable
 }
 
 /**
- * Возвращает валидатор, проверяющий, что текущий пользователь не является автором последней ставки.
+ * Возвращает валидатор, проверяющий, что текущий пользователь не является автором последней ставки и создателем лота
  *
  * @param array $user Текущий пользователь
  * @param array $lotBids Массив ставок лота
  *
  * @return callable(mixed): bool
  */
-function notSameAsLastUser(array $user, array $lotBids): callable
+function validBidUser(array $user, array $lotBids, array $lot): callable
 {
-    return function () use ($user, $lotBids): bool {
+    return function () use ($user, $lotBids, $lot): bool {
+        if ((int)$lot['creatorId'] === (int)$user['id']) {
+            return false;
+        }
+
         if (empty($lotBids)) {
             return true;
         }
@@ -208,5 +212,21 @@ function notSameAsLastUser(array $user, array $lotBids): callable
         }
 
         return (int)$user['id'] !== (int)$lastUserId;
+    };
+}
+
+/**
+ * Возвращает валидатор, проверяющий, что выбранная категория существует.
+ *
+ * @param array $categories Массив категорий
+ *
+ * @return callable(mixed): bool
+ */
+function categoryExists(array $categories): callable
+{
+    $catIds = array_map('intval', array_column($categories, 'id'));
+
+    return function (int $categoryId) use ($catIds): bool {
+        return in_array($categoryId, $catIds, true);
     };
 }

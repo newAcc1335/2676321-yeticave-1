@@ -1,6 +1,5 @@
 <?php
 /**
- * @var array $categories
  * @var string $navigation
  * @var array $form
  */

@@ -228,3 +228,84 @@ function formatTimeAgo(string $createdAt): string
 
     return $hours . ' ' . getNounPluralForm($hours, 'час', 'часа', 'часов') . ' назад';
 }
+
+/**
+ * Проверяет, завершены ли торги.
+ *
+ * @param string $lotEndTime Дата окончания торгов (формат, поддерживающий strtotime)
+ * @return bool возвращает true, если время торгов вышло, и false, если лот еще активен
+ */
+function isLotFinished(string $lotEndTime): bool
+{
+    return strtotime($lotEndTime) <= time();
+}
+
+/**
+ * Определяет текущее состояние ставки. Используется для функций `getBidTimerClass`, `getBidTimerText`
+ * и `getBidRowClass`
+ *
+ * Возможные состояния:
+ * - win     — пользователь является победителем
+ * - end     — лот завершён, но пользователь не победил
+ * - default — лот еще активен
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string Состояние ставки
+ */
+function getBidState(array $bid): string
+{
+    if ($bid['isWinner']) {
+        return 'win';
+    }
+
+    if (isLotFinished($bid['lotEndTime'])) {
+        return 'end';
+    }
+
+    return 'default';
+}
+
+/**
+ * Возвращает CSS-класс таймера для ставки в зависимости от её состояния.
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string CSS-класс таймера
+ */
+function getBidTimerClass(array $bid): string
+{
+    return match (getBidState($bid)) {
+        'win' => 'timer--win',
+        'end' => 'timer--end',
+        default => getTimerClass($bid['lotEndTime']),
+    };
+}
+
+/**
+ * Формирует текст, отображаемый внутри таймера ставки.
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string Текст для отображения в таймере
+ */
+function getBidTimerText(array $bid): string
+{
+    return match (getBidState($bid)) {
+        'win' => 'Ставка выиграла',
+        'end' => 'Торги окончены',
+        default => formatRange(getDtRange($bid['lotEndTime'])),
+    };
+}
+
+/**
+ * Возвращает CSS-класс строки таблицы ставок в зависимости от состояния ставки.
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string CSS-класс строки таблицы (или пустая строка)
+ */
+function getBidRowClass(array $bid): string
+{
+    return match (getBidState($bid)) {
+        'win' => 'rates__item--win',
+        'end' => 'rates__item--end',
+        default => '',
+    };
+}

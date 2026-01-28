@@ -126,6 +126,7 @@ function getLotById(mysqli $conn, int $lotId): ?array
             l.start_time as startTime,
             l.end_time AS endTime,
             l.bid_step as step,
+            l.creator_id as creatorId,
             c.name AS category,
             COALESCE(MAX(b.amount), l.starting_price) AS price
         FROM lots l
@@ -470,4 +471,43 @@ function addBid(mysqli $conn, int $userId, int $lotId, int $amount): int
     }
 
     return $conn->insert_id;
+}
+
+/**
+ * Возвращает все ставки пользователя. Ставки сортируются по дате создания
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @param int $userId ID пользователя
+ *
+ * @return array Массив ставок пользователя или пустой массив, если ставок нет
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function getUserBids(mysqli $conn, int $userId): array
+{
+    $sql = "
+        SELECT
+            b.id AS id,
+            b.amount AS amount,
+            b.created_at AS createdAt,
+            l.id AS lotId,
+            l.title AS lotTitle,
+            l.image_url as lotImage,
+            c.name AS category,
+            u.contact_info AS contactInfo,
+            l.winner_id AS winnerId,
+            l.end_time AS lotEndTime,
+            CASE
+                WHEN l.winner_id = b.user_id THEN 1
+                ELSE 0
+            END AS isWinner
+        FROM bids b
+        JOIN lots l ON l.id = b.lot_id
+        JOIN categories c ON c.id = l.category_id
+        JOIN users u ON u.id = l.creator_id
+        WHERE b.user_id = {$userId}
+        ORDER BY b.created_at DESC
+    ";
+
+    return dbFetchAll($conn, $sql) ?? [];
 }

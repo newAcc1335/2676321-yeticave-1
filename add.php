@@ -16,7 +16,7 @@ if (empty($user)) {
 $form = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $errors = validateAddLotForm($_POST);
+    $errors = validateAddLotForm($_POST, $categories);
 
     if (!empty($errors)) {
         $form['errors'] = $errors;

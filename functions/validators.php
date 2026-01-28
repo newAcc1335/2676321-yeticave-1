@@ -48,9 +48,11 @@ function validateForm(array $inputs, array $rules): array
  * Валидирует данные формы добавления лота.
  *
  * @param array $inputs Массив с данными формы
+ * @param array $categories Массив с категориями
+ *
  * @return array Массив с ошибками или пустой массив, если ошибок нет
  */
-function validateAddLotForm(array $inputs): array
+function validateAddLotForm(array $inputs, array $categories): array
 {
     $rules = [
         'title' => [
@@ -68,6 +70,10 @@ function validateAddLotForm(array $inputs): array
             [
                 'rule' => required(),
                 'message' => 'Выберите категорию',
+            ],
+            [
+                'rule' => categoryExists($categories),
+                'message' => 'Несуществующая категория',
             ],
         ],
 
@@ -221,12 +227,20 @@ function validateLoginForm(array $inputs): array
                 'rule' => email(),
                 'message' => 'Введите корректный e-mail',
             ],
+            [
+                'rule' => maxLength(255),
+                'message' => 'E-mail не должен превышать 255 символов',
+            ],
         ],
 
         'password' => [
             [
                 'rule' => required(),
                 'message' => 'Введите пароль',
+            ],
+            [
+                'rule' => maxLength(72),
+                'message' => 'Пароль не может быть длиннее 72 символов',
             ],
         ],
     ];
@@ -249,8 +263,8 @@ function validateAddBidForm(array $inputs, array $lotBids, array $user, array $l
     $rules = [
         'cost' => [
             [
-                'rule' => notSameAsLastUser($user, $lotBids),
-                'message' => 'Нельзя перебивать свою же ставку',
+                'rule' => validBidUser($user, $lotBids, $lot),
+                'message' => 'Нельзя ставить на свой же лот или перебивать свою же ставку',
             ],
             [
                 'rule' => required(),
