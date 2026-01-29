@@ -165,3 +165,68 @@ function emailNotExists(mysqli $conn): callable
         return $result->num_rows === 0;
     };
 }
+
+/**
+ * Возвращает валидатор, проверяющий, что был соблюден минимальный шаг.
+ *
+ * @param int $price Текущая цена лота
+ * @param int $step Минимальный шаг ставки
+ * @param bool $hasBids Есть ли другие ставки
+ *
+ * @return callable(mixed): bool
+ */
+function validateBidStep(int $price, int $step, bool $hasBids): callable
+{
+    return function ($bid) use ($price, $step, $hasBids): bool {
+        if ($hasBids) {
+            return (int)$bid >= $price + $step;
+        }
+
+        return (int)$bid >= $price;
+    };
+}
+
+/**
+ * Возвращает валидатор, проверяющий, что текущий пользователь не является автором последней ставки и создателем лота
+ *
+ * @param array $user Текущий пользователь
+ * @param array $lotBids Массив ставок лота
+ *
+ * @return callable(mixed): bool
+ */
+function validBidUser(array $user, array $lotBids, array $lot): callable
+{
+    return function () use ($user, $lotBids, $lot): bool {
+        if ((int)$lot['creatorId'] === (int)$user['id']) {
+            return false;
+        }
+
+        if (empty($lotBids)) {
+            return true;
+        }
+
+        $lastUserId = $lotBids[0]['userId'] ?? null;
+
+        if ($lastUserId === null) {
+            return true;
+        }
+
+        return (int)$user['id'] !== (int)$lastUserId;
+    };
+}
+
+/**
+ * Возвращает валидатор, проверяющий, что выбранная категория существует.
+ *
+ * @param array $categories Массив категорий
+ *
+ * @return callable(mixed): bool
+ */
+function categoryExists(array $categories): callable
+{
+    $catIds = array_map('intval', array_column($categories, 'id'));
+
+    return function (int $categoryId) use ($catIds): bool {
+        return in_array($categoryId, $catIds, true);
+    };
+}

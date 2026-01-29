@@ -6,14 +6,8 @@ require_once __DIR__ . '/functions/file.php';
 /**
  * @var mysqli $conn
  * @var array $user
+ * @var array $categories
  */
-
-try {
-    $categories = getCategories($conn);
-} catch (RuntimeException $e) {
-    error_log($e->getMessage());
-    exit('Ошибка при загрузке данных из БД');
-}
 
 if (empty($user)) {
     renderErrorPage($user, $categories, 403, 'Доступ запрещен. Необходимо авторизоваться');
@@ -22,8 +16,8 @@ if (empty($user)) {
 $form = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $errors = validateAddLotForm($_POST);
-    
+    $errors = validateAddLotForm($_POST, $categories);
+
     if (!empty($errors)) {
         $form['errors'] = $errors;
         $form['data'] = $_POST;

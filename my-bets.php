@@ -4,34 +4,39 @@ require_once __DIR__ . '/init.php';
 
 /**
  * @var mysqli $conn
- * @var string $userName
- * @var int $isAuth
  * @var array $user
  * @var array $categories
- *
  */
 
-try {
-    $lots = getLots($conn);
-} catch (RuntimeException $e) {
-    error_log($e->getMessage());
-    exit('Ошибка при загрузке данных лотов из БД');
+if (empty($user)) {
+    renderErrorPage($user, $categories, 403, 'Доступ запрещен. Необходимо авторизоваться');
 }
 
-$mainContent = includeTemplate(
-    'main.php',
-    ['categories' => $categories, 'lots' => $lots]
-);
+try {
+    $bids = getUserBids($conn, $user['id']);
+} catch (RuntimeException $e) {
+    error_log($e->getMessage());
+    exit('Ошибка при загрузке ставок пользователя');
+}
 
 $navigation = includeTemplate(
     'navigation.php',
     ['categories' => $categories]
 );
 
+$mainContent = includeTemplate(
+    'my-bets.php',
+    [
+        'navigation' => $navigation,
+        'bids' => $bids,
+        'userId' => (int)$user['id'],
+    ]
+);
+
 $layoutContent = includeTemplate(
     'layout.php',
     [
-        'title' => 'Главная',
+        'title' => 'Мои ставки',
         'content' => $mainContent,
         'navigation' => $navigation,
         'user' => $user,

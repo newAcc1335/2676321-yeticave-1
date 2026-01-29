@@ -1,7 +1,5 @@
 <?php
 
-use JetBrains\PhpStorm\NoReturn;
-
 /**
  * Подключает шаблон, передает туда данные и возвращает итоговый HTML контент
  *
@@ -107,7 +105,6 @@ function formatRange(array $dtRange): string
     return $hours . ':' . $minutes;
 }
 
-
 /**
  * Возвращает корректную форму множественного числа
  * Ограничения: только для целых чисел
@@ -195,4 +192,138 @@ function renderErrorPage(array $user, array $categories, int $codeErr, string $m
     print $layoutContent;
 
     exit();
+}
+
+/**
+ * Возвращает строку, показывающую сколько времени прошло с объявления ставки.
+ *
+ * @param string $createdAt Время создания ставки (формат, поддерживающий DateTime)
+ * @return string Строка с указанием прошедшего времени или 'недавно', если произошла ошибка
+ */
+function formatTimeAgo(string $createdAt): string
+{
+    $now = new DateTime();
+    try {
+        $created = new DateTime($createdAt);
+    } catch (Exception $e) {
+        error_log($e->getMessage());
+        return 'недавно';
+    }
+
+    $diff = $now->diff($created);
+
+    if ($diff->invert === 0) {
+        return 'недавно';
+    }
+
+    $hours = $diff->h + $diff->days * 24;
+    $minutes = $diff->i;
+
+    if ($hours === 0) {
+        if ($minutes === 0) {
+            return 'менее минуты назад';
+        }
+        return $minutes . ' ' . getNounPluralForm($minutes, 'минута', 'минуты', 'минут') . ' назад';
+    }
+
+    return $hours . ' ' . getNounPluralForm($hours, 'час', 'часа', 'часов') . ' назад';
+}
+
+/**
+ * Проверяет, завершены ли торги.
+ *
+ * @param string $lotEndTime Дата окончания торгов (формат, поддерживающий strtotime)
+ * @return bool возвращает true, если время торгов вышло, и false, если лот еще активен
+ */
+function isLotFinished(string $lotEndTime): bool
+{
+    return strtotime($lotEndTime) <= time();
+}
+
+/**
+ * Определяет текущее состояние ставки. Используется для функций `getBidTimerClass`, `getBidTimerText`
+ * и `getBidRowClass`
+ *
+ * Возможные состояния:
+ * - win     — пользователь является победителем
+ * - end     — лот завершён, но пользователь не победил
+ * - default — лот еще активен
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string Состояние ставки
+ */
+function getBidState(array $bid): string
+{
+    if ($bid['isWinner']) {
+        return 'win';
+    }
+
+    if (isLotFinished($bid['lotEndTime'])) {
+        return 'end';
+    }
+
+    return 'default';
+}
+
+/**
+ * Возвращает CSS-класс таймера для ставки в зависимости от её состояния.
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string CSS-класс таймера
+ */
+function getBidTimerClass(array $bid): string
+{
+    return match (getBidState($bid)) {
+        'win' => 'timer--win',
+        'end' => 'timer--end',
+        default => getTimerClass($bid['lotEndTime']),
+    };
+}
+
+/**
+ * Формирует текст, отображаемый внутри таймера ставки.
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string Текст для отображения в таймере
+ */
+function getBidTimerText(array $bid): string
+{
+    return match (getBidState($bid)) {
+        'win' => 'Ставка выиграла',
+        'end' => 'Торги окончены',
+        default => formatRange(getDtRange($bid['lotEndTime'])),
+    };
+}
+
+/**
+ * Возвращает CSS-класс строки таблицы ставок в зависимости от состояния ставки.
+ *
+ * @param array $bid Массив с данными ставки
+ * @return string CSS-класс строки таблицы (или пустая строка)
+ */
+function getBidRowClass(array $bid): string
+{
+    return match (getBidState($bid)) {
+        'win' => 'rates__item--win',
+        'end' => 'rates__item--end',
+        default => '',
+    };
+}
+
+/**
+ * Ищет категорию по ID в массиве всех категорий.
+ *
+ * @param array $categories Массив с всеми категориями
+ * @param int $id ID категории
+ * @return array|null Массив с данными категории или null, если такой категории не нашлось
+ */
+function findCategoryById(array $categories, int $id): ?array
+{
+    foreach ($categories as $category) {
+        if ((int)$category['id'] === $id) {
+            return $category;
+        }
+    }
+
+    return null;
 }

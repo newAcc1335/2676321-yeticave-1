@@ -5,14 +5,8 @@ require_once __DIR__ . '/init.php';
 /**
  * @var mysqli $conn
  * @var array $user
+ * @var array $categories
  */
-
-try {
-    $categories = getCategories($conn);
-} catch (RuntimeException $e) {
-    error_log($e->getMessage());
-    exit('Ошибка при загрузке данных из БД');
-}
 
 $lotId = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 $lot = null;
@@ -28,6 +22,28 @@ try {
     exit('Ошибка при загрузке данных из БД');
 }
 
+$form = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($user)) {
+    $errors = validateAddBidForm($_POST, $lotBids, $user, $lot);
+
+    if (!empty($errors)) {
+        $form['errors'] = $errors;
+        $form['data'] = $_POST;
+    } else {
+        $bid = (int)$_POST['cost'];
+
+        try {
+            addBid($conn, $user['id'], $lotId, $bid);
+            header("Location: /lot.php?id={$lotId}");
+            exit();
+        } catch (RuntimeException $e) {
+            error_log($e->getMessage());
+            exit('Ошибка при добавлении ставки');
+        }
+    }
+}
+
 $navigation = includeTemplate(
     'navigation.php',
     ['categories' => $categories]
@@ -41,6 +57,7 @@ $mainContent = includeTemplate(
         'lotBids' => $lotBids,
         'navigation' => $navigation,
         'user' => $user,
+        'form' => $form,
     ]
 );
 

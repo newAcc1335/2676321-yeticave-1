@@ -48,9 +48,11 @@ function validateForm(array $inputs, array $rules): array
  * Валидирует данные формы добавления лота.
  *
  * @param array $inputs Массив с данными формы
+ * @param array $categories Массив с категориями
+ *
  * @return array Массив с ошибками или пустой массив, если ошибок нет
  */
-function validateAddLotForm(array $inputs): array
+function validateAddLotForm(array $inputs, array $categories): array
 {
     $rules = [
         'title' => [
@@ -68,6 +70,10 @@ function validateAddLotForm(array $inputs): array
             [
                 'rule' => required(),
                 'message' => 'Выберите категорию',
+            ],
+            [
+                'rule' => categoryExists($categories),
+                'message' => 'Несуществующая категория',
             ],
         ],
 
@@ -200,7 +206,7 @@ function validateRegisterForm(array $inputs, mysqli $conn): array
         ],
     ];
 
-    return validateForm($inputs, $rules);;
+    return validateForm($inputs, $rules);
 }
 
 /**
@@ -221,6 +227,10 @@ function validateLoginForm(array $inputs): array
                 'rule' => email(),
                 'message' => 'Введите корректный e-mail',
             ],
+            [
+                'rule' => maxLength(255),
+                'message' => 'E-mail не должен превышать 255 символов',
+            ],
         ],
 
         'password' => [
@@ -228,8 +238,48 @@ function validateLoginForm(array $inputs): array
                 'rule' => required(),
                 'message' => 'Введите пароль',
             ],
+            [
+                'rule' => maxLength(72),
+                'message' => 'Пароль не может быть длиннее 72 символов',
+            ],
         ],
     ];
 
-    return validateForm($inputs, $rules);;
+    return validateForm($inputs, $rules);
+}
+
+/**
+ * Валидирует данные формы авторизации.
+ *
+ * @param array $inputs Массив с данными формы
+ * @param array $lotBids Массив с ставками к данном лоту
+ * @param array $user Авторизованный пользователь
+ * @param array $lot Лот, на который делают ставку
+ *
+ * @return array Массив с ошибками или пустой массив, если ошибок нет
+ */
+function validateAddBidForm(array $inputs, array $lotBids, array $user, array $lot): array
+{
+    $rules = [
+        'cost' => [
+            [
+                'rule' => validBidUser($user, $lotBids, $lot),
+                'message' => 'Нельзя ставить на свой же лот или перебивать свою же ставку',
+            ],
+            [
+                'rule' => required(),
+                'message' => 'Введите свою ставку',
+            ],
+            [
+                'rule' => positiveInt(),
+                'message' => 'Ставка должна быть целым положительным числом',
+            ],
+            [
+                'rule' => validateBidStep($lot['price'], $lot['step'], !empty($lotBids)),
+                'message' => 'Не соблюден шаг ставки',
+            ],
+        ]
+    ];
+
+    return validateForm($inputs, $rules);
 }
