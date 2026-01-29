@@ -327,3 +327,48 @@ function findCategoryById(array $categories, int $id): ?array
 
     return null;
 }
+
+/**
+ * Формирует строку query для URL. Например: `category=4&search=snowboard`
+ *
+ * @param int|null $categoryId ID категории или null, если не используется фильтр по категории
+ * @param string $search Поисковый запрос или пустая строка, если он не используется
+ *
+ * @return string Готовая строка с query параметрами
+ */
+function getLotsQuery(?int $categoryId, string $search): string
+{
+    $params = [];
+
+    if ($categoryId !== null) {
+        $params['category'] = $categoryId;
+    }
+
+    if ($search !== '') {
+        $params['search'] = $search;
+    }
+
+    return http_build_query($params);
+}
+
+/**
+ * Формирует текст сообщения для страницы со списком лотов.
+ *
+ * @param int|null $categoryId ID категории или null, если не используется фильтр по категории
+ * @param string $search Поисковый запрос или пустая строка, если он не используется
+ * @param array $categories Массив с всеми доступными категориями
+ *
+ * @return string HTML-строка с сообщением (или пустая)
+ */
+function getLotsTitle(?int $categoryId, string $search, array $categories): string
+{
+    if ($search !== '') {
+        return "Результаты поиска по запросу «<span>{$search}</span>»";
+    } elseif ($categoryId !== null) {
+        $cat = findCategoryById($categories, $categoryId);
+        $catName = $cat['name'] ?? '';
+        return $catName !== '' ? "Все лоты в категории {$catName}" : 'Все лоты';
+    }
+
+    return '';
+}

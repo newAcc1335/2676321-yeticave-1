@@ -519,3 +519,73 @@ function getUserBids(mysqli $conn, int $userId): array
 
     return dbFetchAll($conn, $sql) ?? [];
 }
+
+
+/**
+ * Получает все завершённые лоты с ставками без победителя
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @return array Массив завершенных лотов без победителей с данными победителя
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function getFinishedLots(mysqli $conn): array
+{
+    $sql = "
+        SELECT
+            l.id AS lotId,
+            l.title AS lotTitle,
+            c.name AS category,
+            b.amount AS bidAmount,
+            u.id AS winnerId,
+            u.contact_info AS winnerContact,
+            u.name AS winnerName
+        FROM lots l
+        JOIN categories c ON c.id = l.category_id
+        LEFT JOIN bids b ON b.id = (
+            SELECT b2.id
+            FROM bids b2
+            WHERE b2.lot_id = l.id
+            ORDER BY b2.created_at DESC
+            LIMIT 1
+        )
+        LEFT JOIN users u ON u.id = b.user_id
+        WHERE l.end_time <= NOW()
+            AND l.winner_id IS NULL
+            AND b.id IS NOT NULL
+    ";
+
+    return dbFetchAll($conn, $sql) ?? [];
+}
+
+/**
+ * Устанавливает победителя для лота
+ *
+ * @param mysqli $conn Соединение с базой данных
+ * @param int $lotId ID лота
+ * @param int $winnerId ID победителя
+ *
+ * @return bool true при успешном обновлении, false при неудачном
+ *
+ * @throws RuntimeException В случае ошибки выполнения запроса
+ */
+function setLotWinner(mysqli $conn, int $lotId, int $winnerId): bool
+{
+    $sql = '
+        UPDATE lots
+        SET winner_id = ?
+        WHERE id = ?
+            AND winner_id IS NULL
+    ';
+
+    $stmt = dbGetPrepareStmt($conn, $sql, [
+        $winnerId,
+        $lotId
+    ]);
+
+    if (!$stmt->execute()) {
+        throw new RuntimeException('Ошибка при установке победителя');
+    }
+
+    return $stmt->affected_rows > 0;
+}

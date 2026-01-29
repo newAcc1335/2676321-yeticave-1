@@ -10,7 +10,6 @@ require_once __DIR__ . '/init.php';
 
 $search = trim(filter_input(INPUT_GET, 'search', FILTER_SANITIZE_SPECIAL_CHARS) ?? '');
 $search = mb_substr($search, 0, 100);
-
 $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
 $categoryId = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT) ?: null;
 
@@ -37,27 +36,9 @@ if ($page > 0 && ($search !== '' || $categoryId !== null)) {
     }
 }
 
-$params = [];
-
-if ($categoryId !== null) {
-    $params['category'] = $categoryId;
-}
-
-if ($search !== '') {
-    $params['search'] = $search;
-}
-
-$query = http_build_query($params);
+$query = getLotsQuery($categoryId, $search);
 $titlePage = $search !== '' ? 'Результаты поиска' : 'Все лоты';
-
-if ($search !== '') {
-    $message = "Результаты поиска по запросу «<span>{$search}</span>»";
-} elseif ($categoryId !== null) {
-    $cat = findCategoryById($categories, $categoryId);
-    $message = $cat ? "Все лоты в категории {$cat['name']}" : 'Все лоты';
-} else {
-    $message = '';
-}
+$lotsTitle = getLotsTitle($categoryId, $search, $categories);
 
 $navigation = includeTemplate(
     'navigation.php',
@@ -73,7 +54,7 @@ $mainContent = includeTemplate(
         'totalPages' => $totalPages,
         'lots' => $lots,
         'query' => $query,
-        'message' => $message,
+        'message' => $lotsTitle,
     ]
 );
 
