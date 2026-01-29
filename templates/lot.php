@@ -27,7 +27,7 @@ $errors = $form['errors'] ?? [];
             </div>
             <div class="lot-item__right">
                 <?php
-                if (!empty($user)) : ?>
+                if (!empty($user) && !isLotFinished($lot['endTime'])) : ?>
                     <div class="lot-item__state">
                         <div class="lot-item__timer timer <?= getTimerClass($lot['endTime']); ?>">
                             <?= formatRange(getDtRange($lot['endTime'])); ?>

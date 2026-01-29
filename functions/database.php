@@ -356,10 +356,11 @@ function getUserById(mysqli $conn, int $userId): ?array
 }
 
 /**
- * Выполняет полнотекстовый поиск лотов по названию и описанию с пагинацией.
+ * Выполняет полнотекстовый поиск лотов по названию и описанию или/и по категории с пагинацией.
  *
  * @param mysqli $conn Соединение с базой данных
- * @param string $query Поисковый запрос
+ * @param string|null $search Поисковый запрос для полнотекстового поиска или null, если ищем только по категории
+ * @param int|null $categoryId Номер категории или null, если категорию не учитываем
  * @param int $page Номер страницы
  * @param int $limit Количество лотов на странице
  *
@@ -367,11 +368,11 @@ function getUserById(mysqli $conn, int $userId): ?array
  *
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
-function getLotsBySearch(mysqli $conn, string $query, int $page, int $limit = 9): array
+function getLotsBySearch(mysqli $conn, ?string $search, ?int $categoryId, int $page, int $limit = 9): array
 {
     $offset = ($page - 1) * $limit;
 
-    $sql = '
+    $sql = "
         SELECT
             l.id,
             l.title AS name,
@@ -384,15 +385,19 @@ function getLotsBySearch(mysqli $conn, string $query, int $page, int $limit = 9)
         JOIN categories c ON c.id = l.category_id
         LEFT JOIN bids b ON b.lot_id = l.id
         WHERE
-            MATCH(l.title, l.description) AGAINST (? IN BOOLEAN MODE)
+            (? = '' OR MATCH(l.title, l.description) AGAINST (? IN BOOLEAN MODE))
+            AND (? IS NULL OR l.category_id = ?)
             AND l.end_time > NOW()
         GROUP BY l.id
         ORDER BY l.start_time DESC
         LIMIT ? OFFSET ?
-    ';
+    ";
 
     $stmt = dbGetPrepareStmt($conn, $sql, [
-        $query,
+        $search,
+        $search,
+        $categoryId,
+        $categoryId,
         $limit,
         $offset
     ]);
@@ -407,27 +412,30 @@ function getLotsBySearch(mysqli $conn, string $query, int $page, int $limit = 9)
 }
 
 /**
- * Подсчитывает количество активных лотов, соответствующих поисковому запросу.
+ * Подсчитывает количество активных лотов, соответствующих поисковому запросу, или заданной категории.
  * Выполняет полнотекстовый поиск по наименованиям и описаниям лотов.
  *
  * @param mysqli $conn Подключение к базе данных
- * @param string $query Поисковый запрос для полнотекстового поиска
+ * @param string|null $search Поисковый запрос для полнотекстового поиска или null, если ищем только по категории
+ * @param int|null $categoryId Номер категории или null, если категорию не учитываем
  *
  * @return int Количество лотов
  *
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
-function countLotsBySearch(mysqli $conn, string $query): int
+
+function countLotsBySearch(mysqli $conn, ?string $search, ?int $categoryId): int
 {
-    $sql = '
+    $sql = "
         SELECT COUNT(*) AS count
         FROM lots
         WHERE
-            MATCH(title, description) AGAINST (? IN BOOLEAN MODE)
+            (? = '' OR MATCH(title, description) AGAINST (? IN BOOLEAN MODE))
+            AND (? IS NULL OR category_id = ?)
             AND end_time > NOW()
-    ';
+    ";
 
-    $stmt = dbGetPrepareStmt($conn, $sql, [$query]);
+    $stmt = dbGetPrepareStmt($conn, $sql, [$search, $search, $categoryId, $categoryId]);
 
     if (!$stmt->execute()) {
         throw new RuntimeException('Ошибка подсчёта лотов');

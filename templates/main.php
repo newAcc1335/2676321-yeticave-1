@@ -15,7 +15,9 @@
             <?php
             foreach ($categories as $category) : ?>
                 <li class="promo__item promo__item--<?= htmlspecialchars($category['modifier']); ?>">
-                    <a class="promo__link" href="/pages/all-lots.html"><?= htmlspecialchars($category['name']); ?></a>
+                    <a class="promo__link" href="/search.php?category=<?= htmlspecialchars(
+                        $category['id']
+                    ); ?>"><?= htmlspecialchars($category['name']); ?></a>
                 </li>
             <?php
             endforeach; ?>

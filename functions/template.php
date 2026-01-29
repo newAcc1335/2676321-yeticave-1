@@ -309,3 +309,21 @@ function getBidRowClass(array $bid): string
         default => '',
     };
 }
+
+/**
+ * Ищет категорию по ID в массиве всех категорий.
+ *
+ * @param array $categories Массив с всеми категориями
+ * @param int $id ID категории
+ * @return array|null Массив с данными категории или null, если такой категории не нашлось
+ */
+function findCategoryById(array $categories, int $id): ?array
+{
+    foreach ($categories as $category) {
+        if ((int)$category['id'] === $id) {
+            return $category;
+        }
+    }
+
+    return null;
+}
