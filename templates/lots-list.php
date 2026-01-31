@@ -22,8 +22,8 @@
                     </a></h3>
                 <div class="lot__state">
                     <div class="lot__rate">
-                        <span class="lot__amount">Стартовая цена</span>
-                        <span class="lot__cost"><?= formatPrice($lot['startingPrice']); ?></span>
+                        <span class="lot__amount"><?= formatBidsCount($lot['bidsCount']); ?></span>
+                        <span class="lot__cost"><?= formatPrice($lot['price']); ?></span>
                     </div>
                     <div class="lot__timer timer <?= getTimerClass($lot['endTime']); ?>">
                         <?= formatRange(getDtRange($lot['endTime'])); ?>

@@ -28,7 +28,7 @@ function includeTemplate(string $name, array $data = []): string
  * Форматирует строку с ценой, разделяя по разрядам и добавляя знак рубля.
  *
  * @param int|float $price Стоимость товара в рублях
- * @param bool $withRub Добавлять ли знак рубля. Если true - то с знаком, если false - без знака
+ * @param bool $withRub Добавлять ли знак рубля. Если true - то со знаком, если false - без знака
  * @return string Отформатированная строка с ценой
  */
 function formatPrice(int|float $price, bool $withRub = true): string
@@ -125,30 +125,22 @@ function formatRange(array $dtRange): string
  * @param string $two Форма множественного числа для 2, 3, 4: яблока, часа, минуты
  * @param string $many Форма множественного числа для остальных чисел
  *
- * @return string Рассчитанная форма множественнго числа
+ * @return string Рассчитанная форма множественного числа
  */
 function getNounPluralForm(int $number, string $one, string $two, string $many): string
 {
-    $number = (int)$number;
+    $number = abs($number) % 100;
     $mod10 = $number % 10;
-    $mod100 = $number % 100;
 
-    switch (true) {
-        case ($mod100 >= 11 && $mod100 <= 20):
-            return $many;
-
-        case ($mod10 > 5):
-            return $many;
-
-        case ($mod10 === 1):
-            return $one;
-
-        case ($mod10 >= 2 && $mod10 <= 4):
-            return $two;
-
-        default:
-            return $many;
+    if ($number >= 11 && $number <= 19) {
+        return $many;
     }
+
+    return match ($mod10) {
+        1 => $one,
+        2, 3, 4 => $two,
+        default => $many,
+    };
 }
 
 /**
@@ -179,7 +171,7 @@ function renderErrorPage(array $user, array $categories, int $codeErr, string $m
     $layoutContent = includeTemplate(
         'layout.php',
         [
-            'title' => "Ошибка {$codeErr}",
+            'title' => "Ошибка $codeErr",
             'content' => $mainContent,
             'navigation' => $navigation,
             'user' => $user,
@@ -326,4 +318,135 @@ function findCategoryById(array $categories, int $id): ?array
     }
 
     return null;
+}
+
+/**
+ * Формирует строку query для URL. Например: `category=4&search=snowboard`
+ *
+ * @param int|null $categoryId ID категории или null, если не используется фильтр по категории
+ * @param string $search Поисковый запрос или пустая строка, если он не используется
+ *
+ * @return string Готовая строка с query параметрами
+ */
+function getLotsQuery(?int $categoryId, string $search): string
+{
+    $params = [];
+
+    if ($categoryId !== null) {
+        $params['category'] = $categoryId;
+    }
+
+    if ($search !== '') {
+        $params['search'] = $search;
+    }
+
+    return http_build_query($params);
+}
+
+/**
+ * Формирует текст сообщения для страницы со списком лотов.
+ *
+ * @param int|null $categoryId ID категории или null, если не используется фильтр по категории
+ * @param string $search Поисковый запрос или пустая строка, если он не используется
+ * @param array $categories Массив с всеми доступными категориями
+ *
+ * @return string HTML-строка с сообщением (или пустая)
+ */
+function getLotsTitle(?int $categoryId, string $search, array $categories): string
+{
+    if ($search !== '') {
+        return "Результаты поиска по запросу «<span>$search</span>»";
+    } elseif ($categoryId !== null) {
+        $cat = findCategoryById($categories, $categoryId);
+        $catName = $cat['name'] ?? '';
+        return $catName !== '' ? "Все лоты в категории $catName" : 'Все лоты';
+    }
+
+    return '';
+}
+
+/**
+ * Проверяет, может ли пользователь сделать ставку на лот.
+ *
+ * @param array $user Данные текущего пользователя
+ * @param array $lotBids Список ставок по лоту, отсортированный по убыванию
+ * @param array $lot Данные лота
+ *
+ * @return bool true — пользователь может сделать ставку, false — нет
+ */
+function isBidAllowed(array $user, array $lotBids, array $lot): bool
+{
+    if (empty($user)) {
+        return false;
+    }
+
+    if (isLotFinished($lot['endTime'])) {
+        return false;
+    }
+
+    if ((int)$lot['creatorId'] === (int)$user['id']) {
+        return false;
+    }
+
+    if (empty($lotBids)) {
+        return true;
+    }
+
+    $lastUserId = $lotBids[0]['userId'] ?? null;
+
+    if ($lastUserId === null) {
+        return true;
+    }
+
+    return (int)$user['id'] !== (int)$lastUserId;
+}
+
+/**
+ * Возвращает удобное представление количества ставок для лота.
+ *
+ * @param int $bidsCount Количество ставок
+ *
+ * @return string Строка для шаблона с количеством ставок
+ */
+function formatBidsCount(int $bidsCount): string
+{
+    if ($bidsCount === 0) {
+        return 'Стартовая цена';
+    }
+
+    $word = getNounPluralForm($bidsCount, 'ставка', 'ставки', 'ставок');
+
+    return $bidsCount . ' ' . $word;
+}
+
+/**
+ * Получает и очищает строку из GET-параметра
+ *
+ * @param string $param Имя GET-параметра
+ * @param int $maxLength Максимальная длина возвращаемой строки
+ *
+ * @return string Очищенная и обрезанная строка (вернет пустую строку, если такого параметра нет)
+ */
+function filterInputString(string $param, int $maxLength = 150): string
+{
+    $value = trim(filter_input(INPUT_GET, $param, FILTER_SANITIZE_SPECIAL_CHARS) ?? '');
+    return mb_substr($value, 0, $maxLength);
+}
+
+/**
+ * Вычисляет минимальную ставку для лота.
+ *
+ * @param array $lot Массив с данными лота
+ * @param array $lotBids Массив ставок к данному лоту
+ *
+ * @return int Минимально возможная ставка
+ */
+function getMinBid(array $lot, array $lotBids): int
+{
+    if (!empty($lotBids)) {
+        $lastBid = end($lotBids);
+        return $lastBid['amount'] + $lot['step'];
+    }
+
+    return $lot['price'];
 }

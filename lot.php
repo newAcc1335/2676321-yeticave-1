@@ -22,14 +22,14 @@ try {
     exit('Ошибка при загрузке данных из БД');
 }
 
-$form = [];
+$data = [];
+$errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($user)) {
-    $errors = validateAddBidForm($_POST, $lotBids, $user, $lot);
+    $errors = validateAddBidForm($_POST, $lotBids, $lot);
 
     if (!empty($errors)) {
-        $form['errors'] = $errors;
-        $form['data'] = $_POST;
+        $data = $_POST;
     } else {
         $bid = (int)$_POST['cost'];
 
@@ -57,7 +57,8 @@ $mainContent = includeTemplate(
         'lotBids' => $lotBids,
         'navigation' => $navigation,
         'user' => $user,
-        'form' => $form,
+        'data' => $data,
+        'errors' => $errors,
     ]
 );
 

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/getwinner.php';
 
 /**
  * @var mysqli $conn
@@ -18,9 +19,14 @@ try {
     exit('Ошибка при загрузке данных лотов из БД');
 }
 
+$listLots = includeTemplate(
+    'lots-list.php',
+    ['lots' => $lots]
+);
+
 $mainContent = includeTemplate(
     'main.php',
-    ['categories' => $categories, 'lots' => $lots]
+    ['categories' => $categories, 'lots' => $lots, 'listLots' => $listLots]
 );
 
 $navigation = includeTemplate(

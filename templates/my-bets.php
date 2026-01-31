@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var array $categories
  * @var string $navigation
@@ -7,7 +8,6 @@
  */
 
 ?>
-
 
 <main>
     <?= $navigation; ?>
@@ -27,11 +27,11 @@
                         </div>
                         <div>
                             <h3 class="rates__title">
-                                <a href="lot.php?id=<?= $bid['lotId']; ?>"><?= htmlspecialchars(
+                                <a href="lot.php?id=<?= (int)$bid['lotId']; ?>"><?= htmlspecialchars(
                                         $bid['lotTitle']
                                     ); ?></a>
                             </h3>
-                            <p><?= $bid['isWinner'] ? $bid['contactInfo'] : ''; ?></p>
+                            <p><?= $bid['isWinner'] ? htmlspecialchars($bid['contactInfo']) : ''; ?></p>
                         </div>
                     </td>
                     <td class="rates__category">

@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . "/validation_rules.php";
-
 /**
  * Валидирует входные данные формы по набору правил.
  *
@@ -95,7 +93,7 @@ function validateAddLotForm(array $inputs, array $categories): array
             ],
             [
                 'rule' => positiveInt(),
-                'message' => 'Начальная цена должна быть целым положительным числом',
+                'message' => 'Начальная цена должна быть целым положительным числом, не превышающая 1млрд',
             ],
         ],
 
@@ -106,7 +104,7 @@ function validateAddLotForm(array $inputs, array $categories): array
             ],
             [
                 'rule' => positiveInt(),
-                'message' => 'Шаг ставки должен быть целым положительным числом',
+                'message' => 'Шаг ставки должен быть целым положительным числом, не превышающим 1млрд',
             ],
         ],
 
@@ -252,27 +250,22 @@ function validateLoginForm(array $inputs): array
  * Валидирует данные формы авторизации.
  *
  * @param array $inputs Массив с данными формы
- * @param array $lotBids Массив с ставками к данном лоту
- * @param array $user Авторизованный пользователь
+ * @param array $lotBids Массив со ставками к данном лоту
  * @param array $lot Лот, на который делают ставку
  *
  * @return array Массив с ошибками или пустой массив, если ошибок нет
  */
-function validateAddBidForm(array $inputs, array $lotBids, array $user, array $lot): array
+function validateAddBidForm(array $inputs, array $lotBids, array $lot): array
 {
     $rules = [
         'cost' => [
-            [
-                'rule' => validBidUser($user, $lotBids, $lot),
-                'message' => 'Нельзя ставить на свой же лот или перебивать свою же ставку',
-            ],
             [
                 'rule' => required(),
                 'message' => 'Введите свою ставку',
             ],
             [
                 'rule' => positiveInt(),
-                'message' => 'Ставка должна быть целым положительным числом',
+                'message' => 'Ставка должна быть целым положительным числом, не превышающим 1млрд',
             ],
             [
                 'rule' => validateBidStep($lot['price'], $lot['step'], !empty($lotBids)),
