@@ -444,8 +444,7 @@ function filterInputString(string $param, int $maxLength = 150): string
 function getMinBid(array $lot, array $lotBids): int
 {
     if (!empty($lotBids)) {
-        $lastBid = end($lotBids);
-        return $lastBid['amount'] + $lot['step'];
+        return $lotBids[0]['amount'] + $lot['step'];
     }
 
     return $lot['price'];
