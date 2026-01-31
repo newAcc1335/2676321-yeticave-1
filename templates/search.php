@@ -6,6 +6,7 @@
  * @var int $page
  * @var int $totalPages
  * @var array $lots
+ * @var string $lotsList
  * @var array $query
  * @var string $message
  */
@@ -22,12 +23,12 @@
                 <p>Ничего не найдено по вашему запросу</p>
             <?php
             else: ?>
-                <?= includeTemplate('lots-list.php', ['lots' => $lots]); ?>
+                <?= $lotsList; ?>
             <?php
             endif; ?>
         </section>
         <?php
-        if ($totalPages > 1): ?>
+        if ($totalPages > 1) : ?>
             <ul class="pagination-list">
                 <li class="pagination-item pagination-item-prev">
                     <?php

@@ -40,6 +40,11 @@ $query = getLotsQuery($categoryId, $search);
 $titlePage = $search !== '' ? 'Результаты поиска' : 'Все лоты';
 $lotsTitle = getLotsTitle($categoryId, $search, $categories);
 
+$lotsList = includeTemplate(
+    'lots-list.php',
+    ['lots' => $lots]
+);
+
 $navigation = includeTemplate(
     'navigation.php',
     ['categories' => $categories]
@@ -52,6 +57,7 @@ $mainContent = includeTemplate(
         'search' => $search,
         'page' => $page,
         'totalPages' => $totalPages,
+        'lotsList' => $lotsList,
         'lots' => $lots,
         'query' => $query,
         'message' => $lotsTitle,
