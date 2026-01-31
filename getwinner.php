@@ -14,7 +14,6 @@ foreach ($finishedLots as $lot) {
     try {
         if (setLotWinner($conn, $lot['lotId'], $lot['winnerId'])) {
             sendEmail($mailer, $lot, $config);
-            error_log('test1');
         }
     } catch (Exception $e) {
         error_log($e->getMessage());
