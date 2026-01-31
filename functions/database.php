@@ -5,7 +5,7 @@
  *
  * @param array $db_config
  * @return mysqli Соединение с базой данных
- * @throws RuntimeException Исключение в случие ошибки при подключении
+ * @throws RuntimeException Исключение в случае ошибки при подключении
  */
 function getDbConnect(array $db_config): mysqli
 {
@@ -67,13 +67,13 @@ function dbFetchOne(mysqli $conn, string $sql): ?array
  * Возвращает названия и модификаторы всех категорий.
  *
  * @param mysqli $conn Соединение с базой данных
- * @return array<int, array{name: string, modifier: string}> Список категорий с названием и модификатором
+ * @return array Список категорий с названием и модификатором
  * @throws RuntimeException В случае ошибки выполнения запроса
  */
 function getCategories(mysqli $conn): array
 {
     $sql = 'SELECT id, name, modifier FROM categories';
-    return dbFetchAll($conn, $sql);
+    return dbFetchAll($conn, $sql) ?? [];
 }
 
 /**
@@ -93,12 +93,19 @@ function getLots(mysqli $conn): array
             l.image_url AS imageUrl,
             l.end_time AS endTime,
             c.name AS category,
-            COALESCE(MAX(b.amount), l.starting_price) AS price
+            COALESCE(MAX(b.amount), l.starting_price) AS price,
+            COUNT(b.id) AS bidsCount
         FROM lots l
         JOIN categories c ON c.id = l.category_id
         LEFT JOIN bids b ON b.lot_id = l.id
         WHERE l.end_time > NOW()
-        GROUP BY l.id
+        GROUP BY
+            l.id,
+            l.title,
+            l.starting_price,
+            l.image_url,
+            l.end_time,
+            c.name
         ORDER BY l.start_time DESC
         LIMIT 6;
     ';
@@ -133,7 +140,17 @@ function getLotById(mysqli $conn, int $lotId): ?array
         JOIN categories c ON c.id = l.category_id
         LEFT JOIN bids b ON b.lot_id = l.id
         WHERE l.id = {$lotId}
-        GROUP BY l.id
+        GROUP BY
+            l.id,
+            l.title,
+            l.description,
+            l.starting_price,
+            l.image_url,
+            l.start_time,
+            l.end_time,
+            l.bid_step,
+            l.creator_id,
+            c.name
     ";
 
     return dbFetchOne($conn, $sql);
@@ -195,16 +212,12 @@ function dbGetPrepareStmt(mysqli $link, string $sql, array $data = []): mysqli_s
 
             if (is_int($value)) {
                 $type = 'i';
-            } elseif (is_string($value)) {
-                $type = 's';
             } elseif (is_double($value)) {
                 $type = 'd';
             }
 
-            if ($type) {
-                $types .= $type;
-                $stmt_data[] = $value;
-            }
+            $types .= $type;
+            $stmt_data[] = $value;
         }
 
         $values = array_merge([$stmt, $types], $stmt_data);
@@ -380,7 +393,8 @@ function getLotsBySearch(mysqli $conn, ?string $search, ?int $categoryId, int $p
             l.image_url AS imageUrl,
             l.end_time AS endTime,
             c.name AS category,
-            COALESCE(MAX(b.amount), l.starting_price) AS price
+            COALESCE(MAX(b.amount), l.starting_price) AS price,
+            COUNT(b.id) AS bidsCount
         FROM lots l
         JOIN categories c ON c.id = l.category_id
         LEFT JOIN bids b ON b.lot_id = l.id
@@ -388,7 +402,13 @@ function getLotsBySearch(mysqli $conn, ?string $search, ?int $categoryId, int $p
             (? = '' OR MATCH(l.title, l.description) AGAINST (? IN BOOLEAN MODE))
             AND (? IS NULL OR l.category_id = ?)
             AND l.end_time > NOW()
-        GROUP BY l.id
+        GROUP BY
+            l.id,
+            l.title,
+            l.starting_price,
+            l.image_url,
+            l.end_time,
+            c.name
         ORDER BY l.start_time DESC
         LIMIT ? OFFSET ?
     ";
@@ -475,7 +495,7 @@ function addBid(mysqli $conn, int $userId, int $lotId, int $amount): int
     ]);
 
     if (!$stmt->execute()) {
-        throw new RuntimeException('Ошибка при добававлении ставки');
+        throw new RuntimeException('Ошибка при добавлении ставки');
     }
 
     return $conn->insert_id;
@@ -522,7 +542,7 @@ function getUserBids(mysqli $conn, int $userId): array
 
 
 /**
- * Получает все завершённые лоты с ставками без победителя
+ * Получает все завершённые лоты со ставками без победителя
  *
  * @param mysqli $conn Соединение с базой данных
  * @return array Массив завершенных лотов без победителей с данными победителя
@@ -538,7 +558,7 @@ function getFinishedLots(mysqli $conn): array
             c.name AS category,
             b.amount AS bidAmount,
             u.id AS winnerId,
-            u.contact_info AS winnerContact,
+            u.email AS winnerEmail,
             u.name AS winnerName
         FROM lots l
         JOIN categories c ON c.id = l.category_id

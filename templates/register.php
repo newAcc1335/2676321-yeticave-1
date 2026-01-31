@@ -1,12 +1,12 @@
 <?php
+
 /**
  * @var array $categories
  * @var string $navigation
- * @var array $form
+ * @var array $data
+ * @var array $errors
  */
 
-$data = $form['data'] ?? [];
-$errors = $form['errors'] ?? [];
 ?>
 
 <main>
@@ -41,6 +41,6 @@ $errors = $form['errors'] ?? [];
             <?= !empty($errors) ? 'Пожалуйста, исправьте ошибки в форме.' : ''; ?>
         </span>
         <button type="submit" class="button">Зарегистрироваться</button>
-        <a class="text-link" href="#">Уже есть аккаунт</a>
+        <a class="text-link" href="/login.php">Уже есть аккаунт</a>
     </form>
 </main>

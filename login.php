@@ -8,18 +8,18 @@ require_once __DIR__ . '/init.php';
  * @var array $categories
  */
 
-$form = [];
+$errors = [];
+$data = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = validateLoginForm($_POST);
     $userId = null;
 
     if (!empty($errors)) {
-        $form['errors'] = $errors;
-        $form['data'] = $_POST;
+        $data = $_POST;
     } elseif (($userId = authenticateUser($conn, $_POST['email'], $_POST['password'])) === null) {
-        $form['errors'] = ['email' => 'Вы ввели неверный email/пароль', 'password' => 'Вы ввели неверный email/пароль'];
-        $form['data'] = $_POST;
+        $errors = ['email' => 'Вы ввели неверный email/пароль', 'password' => 'Вы ввели неверный email/пароль'];
+        $data = $_POST;
     } else {
         $_SESSION['userId'] = $userId;
         header("Location: /");
@@ -36,7 +36,8 @@ $mainContent = includeTemplate(
     'login.php',
     [
         'navigation' => $navigation,
-        'form' => $form,
+        'errors' => $errors,
+        'data' => $data,
     ]
 );
 

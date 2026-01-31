@@ -6,10 +6,10 @@ require_once __DIR__ . '/init.php';
  * @var mysqli $conn
  * @var array $user
  * @var array $categories
+ * @var array $config
  */
 
-$search = trim(filter_input(INPUT_GET, 'search', FILTER_SANITIZE_SPECIAL_CHARS) ?? '');
-$search = mb_substr($search, 0, 100);
+$search = filterInputString('search', 100);
 $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
 $categoryId = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT) ?: null;
 
@@ -17,7 +17,7 @@ if ($categoryId !== null && !categoryExists($categories)($categoryId)) {
     $categoryId = null;
 }
 
-$limit = 9;
+$limit = $config['pagination']['lots_per_page'] ?? 9;
 $lots = [];
 $totalPages = 0;
 

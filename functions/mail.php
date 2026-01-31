@@ -1,7 +1,6 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
@@ -9,9 +8,9 @@ use Symfony\Component\Mime\Email;
 /**
  * Создает и возвращает объект Mailer
  *
- * @param array $config
+ * @param array $config Массив с данными конфигурации
  *
- * @return Mailer
+ * @return Mailer объект Mailer
  */
 function createMailer(array $config): Mailer
 {
@@ -30,31 +29,34 @@ function createMailer(array $config): Mailer
 /**
  * Отправляет письмо
  *
- * @param Mailer $mailer
- * @param array $lot
- * @param array $config
+ * @param Mailer $mailer Объект почтового отправителя
+ * @param array $lot Массив с данными лота
+ * @param array $config Массив с данными конфигурации
  *
- * @return bool
+ * @return bool возвращает true, если сообщение отправлено, и false, если нет
  */
-function sendEmail(
-    Mailer $mailer,
-    array $lot,
-    array $config
-): bool {
-    //$url = 'http://localhost:8000/';
+function sendEmail(Mailer $mailer, array $lot, array $config): bool
+{
+    $url = $config['app']['url'];
+    $lotId = (int)$lot['lotId'];
+
+    $lotUrl = "$url/lot.php?id=$lotId";
+    $bidUrl = "$url/my-bets.php";
 
     $message = includeTemplate(
         'email.php',
         [
             'userName' => $lot['winnerName'],
-            'lotId' => $lot['lotId'],
+            'lotId' => $lotId,
             'lotName' => $lot['lotTitle'],
-            'url' => $config['mailer']['url'],
+            'lotUrl' => $lotUrl,
+            'bidUrl' => $bidUrl,
+            'url' => $url,
         ],
     );
 
     $email = new Email();
-    $email->to($lot['winnerContact']);
+    $email->to($lot['winnerEmail']);
     $email->from($config['mailer']['emailFrom']);
     $email->subject('Ваша ставка победила');
     $email->html($message);
@@ -62,7 +64,7 @@ function sendEmail(
     try {
         $mailer->send($email);
         return true;
-    } catch (Exception $e) {
+    } catch (TransportExceptionInterface $e) {
         error_log($e->getMessage());
         return false;
     }

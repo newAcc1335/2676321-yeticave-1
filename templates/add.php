@@ -1,12 +1,12 @@
 <?php
+
 /**
  * @var array $categories
  * @var string $navigation
- * @var array $form
+ * @var array $data
+ * @var array $errors
  */
 
-$data = $form['data'] ?? [];
-$errors = $form['errors'] ?? [];
 ?>
 <main>
     <?= $navigation; ?>
@@ -27,7 +27,7 @@ $errors = $form['errors'] ?? [];
                     <?php
                     foreach ($categories as $category) : ?>
                         <option value="<?= htmlspecialchars($category['id']); ?>"
-                            <?= ($data['category'] ?? '') === $category['id'] ? 'selected' : ''; ?>>
+                            <?= (int)($data['category'] ?? 0) === (int)$category['id'] ? 'selected' : ''; ?>>
                             <?= htmlspecialchars($category['name']); ?>
                         </option>
                     <?php

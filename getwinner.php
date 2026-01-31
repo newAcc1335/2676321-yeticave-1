@@ -14,12 +14,10 @@ foreach ($finishedLots as $lot) {
     try {
         if (setLotWinner($conn, $lot['lotId'], $lot['winnerId'])) {
             sendEmail($mailer, $lot, $config);
-            //error_log('ПИСЬМО ПОШЛО ЮХУ');
+            error_log('test1');
         }
     } catch (Exception $e) {
         error_log($e->getMessage());
         exit('Ошибка при запросах установки победителей');
     }
 }
-
-

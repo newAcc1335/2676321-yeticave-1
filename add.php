@@ -13,14 +13,14 @@ if (empty($user)) {
     renderErrorPage($user, $categories, 403, 'Доступ запрещен. Необходимо авторизоваться');
 }
 
-$form = [];
+$errors = [];
+$data = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errors = validateAddLotForm($_POST, $categories);
 
     if (!empty($errors)) {
-        $form['errors'] = $errors;
-        $form['data'] = $_POST;
+        $data = $_POST;
     } else {
         try {
             $filePath = __DIR__ . '/uploads/';
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'starting_price' => (int)($_POST['starting_price']),
                 'bid_step' => (int)($_POST['bid_step']),
                 'category_id' => (int)($_POST['category']),
-                'creator_id' => $user['id'],
+                'creator_id' => (int)($user['id']),
             ];
 
             $lotId = addLot($conn, $lot);
@@ -58,7 +58,8 @@ $mainContent = includeTemplate(
     [
         'categories' => $categories,
         'navigation' => $navigation,
-        'form' => $form,
+        'errors' => $errors,
+        'data' => $data,
     ]
 );
 

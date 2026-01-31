@@ -19,9 +19,14 @@ try {
     exit('Ошибка при загрузке данных лотов из БД');
 }
 
+$listLots = includeTemplate(
+    'lots-list.php',
+    ['lots' => $lots]
+);
+
 $mainContent = includeTemplate(
     'main.php',
-    ['categories' => $categories, 'lots' => $lots]
+    ['categories' => $categories, 'lots' => $lots, 'listLots' => $listLots]
 );
 
 $navigation = includeTemplate(

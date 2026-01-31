@@ -1,11 +1,11 @@
 <?php
+
 /**
  * @var string $navigation
- * @var array $form
+ * @var array $data
+ * @var array $errors
  */
 
-$data = $form['data'] ?? [];
-$errors = $form['errors'] ?? [];
 ?>
 
 <main>

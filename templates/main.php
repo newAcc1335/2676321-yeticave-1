@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @var array $categories
  * @var array $lots
+ * @var string $listLots
  */
 
 ?>
@@ -27,7 +29,7 @@
         <div class="lots__header">
             <h2>Открытые лоты</h2>
         </div>
-        <?= includeTemplate('lots-list.php', ['lots' => $lots]); ?>
+        <?= $listLots; ?>
     </section>
 </main>
 

@@ -3,12 +3,12 @@
 /**
  * @var string $userName
  * @var int $lotId
+ * @var string $lotUrl
+ * @var string $bidUrl
  * @var string $lotName
  * @var string $url
  */
 
-$lotUrl = "{$url}/lot.php?id={$lotId}";
-$bidUrl = "{$url}/my-bets.php";
 ?>
 
 <h1>Поздравляем с победой</h1>

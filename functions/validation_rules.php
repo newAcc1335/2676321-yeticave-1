@@ -78,12 +78,18 @@ function minLength(int $min): callable
 /**
  * Возвращает валидатор, проверяющий, что значение является целым положительным числом.
  *
+ * @param int $maxValue Максимальное допустимое значение (по умолчанию 1_000_000_000)
+ *
  * @return callable(mixed): bool
  */
-function positiveInt(): callable
+function positiveInt(int $maxValue = 1_000_000_000): callable
 {
-    return function ($value): bool {
-        return filter_var($value, FILTER_VALIDATE_INT) !== false && $value > 0;
+    return function ($value) use ($maxValue): bool {
+        if (filter_var($value, FILTER_VALIDATE_INT) === false || $value <= 0) {
+            return false;
+        }
+
+        return $value <= $maxValue;
     };
 }
 
@@ -183,35 +189,6 @@ function validateBidStep(int $price, int $step, bool $hasBids): callable
         }
 
         return (int)$bid >= $price;
-    };
-}
-
-/**
- * Возвращает валидатор, проверяющий, что текущий пользователь не является автором последней ставки и создателем лота
- *
- * @param array $user Текущий пользователь
- * @param array $lotBids Массив ставок лота
- *
- * @return callable(mixed): bool
- */
-function validBidUser(array $user, array $lotBids, array $lot): callable
-{
-    return function () use ($user, $lotBids, $lot): bool {
-        if ((int)$lot['creatorId'] === (int)$user['id']) {
-            return false;
-        }
-
-        if (empty($lotBids)) {
-            return true;
-        }
-
-        $lastUserId = $lotBids[0]['userId'] ?? null;
-
-        if ($lastUserId === null) {
-            return true;
-        }
-
-        return (int)$user['id'] !== (int)$lastUserId;
     };
 }
 

@@ -12,7 +12,8 @@ if (!empty($user)) {
     renderErrorPage($user, $categories, 403, 'Доступ запрещен. Только для неавторизованных пользователей');
 }
 
-$form = [];
+$errors = [];
+$data = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -23,8 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!empty($errors)) {
-        $form['errors'] = $errors;
-        $form['data'] = $_POST;
+        $data = $_POST;
     } else {
         $user = [
             'name' => $_POST['name'],
@@ -55,7 +55,8 @@ $mainContent = includeTemplate(
     [
         'categories' => $categories,
         'navigation' => $navigation,
-        'form' => $form,
+        'data' => $data,
+        'errors' => $errors,
     ]
 );
 

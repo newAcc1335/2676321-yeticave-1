@@ -16,7 +16,7 @@
     <?= $navigation; ?>
     <div class="container">
         <section class="lots">
-            <h2><?= $message ?></h2>
+            <h2><?= htmlspecialchars($message); ?></h2>
             <?php
             if (empty($lots)): ?>
                 <p>Ничего не найдено по вашему запросу</p>
@@ -32,7 +32,7 @@
                 <li class="pagination-item pagination-item-prev">
                     <?php
                     if ($page > 1): ?>
-                        <a href="?<?= $query; ?>&page=<?= $page - 1; ?>">Назад</a>
+                        <a href="?<?= htmlspecialchars($query); ?>&page=<?= $page - 1; ?>">Назад</a>
                     <?php
                     else: ?>
                         <a>Назад</a>
@@ -48,7 +48,7 @@
                             <a><?= $i; ?></a>
                         <?php
                         else: ?>
-                            <a href="?<?= $query; ?>&page=<?= $i; ?>"><?= $i; ?></a>
+                            <a href="?<?= htmlspecialchars($query); ?>&page=<?= $i; ?>"><?= $i; ?></a>
                         <?php
                         endif; ?>
                     </li>
@@ -58,7 +58,7 @@
                 <li class="pagination-item pagination-item-next">
                     <?php
                     if ($page < $totalPages): ?>
-                        <a href="?<?= $query; ?>&page=<?= $page + 1; ?>">Вперед</a>
+                        <a href="?<?= htmlspecialchars($query); ?>&page=<?= $page + 1; ?>">Вперед</a>
                     <?php
                     else: ?>
                         <a>Вперед</a>
