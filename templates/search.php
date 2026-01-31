@@ -28,7 +28,7 @@
             endif; ?>
         </section>
         <?php
-        if ($totalPages > 1) : ?>
+        if ($totalPages > 1): ?>
             <ul class="pagination-list">
                 <li class="pagination-item pagination-item-prev">
                     <?php
