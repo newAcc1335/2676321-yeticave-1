@@ -17,8 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!empty($errors)) {
         $data = $_POST;
-    } elseif (($userId = authenticateUser($conn, $_POST['email'], $_POST['password'])) === null) {
-        $errors = ['email' => 'Вы ввели неверный email/пароль', 'password' => 'Вы ввели неверный email/пароль'];
+    } elseif (($userId = authenticateUser(
+            $conn,
+            $_POST[LoginField::EMAIL->value],
+            $_POST[LoginField::PASSWORD->value]
+        )) === null) {
+        $errors = [
+            LoginField::EMAIL->value => 'Вы ввели неверный email/пароль',
+            LoginField::PASSWORD->value => 'Вы ввели неверный email/пароль'
+        ];
         $data = $_POST;
     } else {
         $_SESSION['userId'] = $userId;

@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($user)) {
     if (!empty($errors)) {
         $data = $_POST;
     } else {
-        $bid = (int)$_POST['cost'];
+        $bid = (int)$_POST[BidField::COST->value];
 
         try {
             addBid($conn, $user['id'], $lotId, $bid);

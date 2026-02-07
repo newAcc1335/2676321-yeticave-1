@@ -1,53 +1,53 @@
 <?php
 
 define('REGISTER_RULES', [
-    'email' => [
+    RegisterField::EMAIL->value => [
         ['rule' => required(), 'message' => 'Введите e-mail'],
         ['rule' => email(), 'message' => 'Введите корректный e-mail'],
         ['rule' => maxLength(255), 'message' => 'E-mail не должен превышать 255 символов'],
     ],
-    'password' => [
+    RegisterField::PASSWORD->value => [
         ['rule' => required(), 'message' => 'Введите пароль'],
         ['rule' => minLength(5), 'message' => 'Пароль не может быть короче 5 символов'],
         ['rule' => maxLength(72), 'message' => 'Пароль не может быть длиннее 72 символов'],
     ],
-    'name' => [
+    RegisterField::NAME->value => [
         ['rule' => required(), 'message' => 'Введите имя'],
         ['rule' => maxLength(100), 'message' => 'Имя не должно превышать 100 символов'],
     ],
-    'contactInfo' => [
+    RegisterField::CONTACT_INFO->value => [
         ['rule' => required(), 'message' => 'Напишите как с вами связаться'],
         ['rule' => maxLength(2000), 'message' => 'Контактная информация не должна превышать 2000 символов'],
     ],
 ]);
 
 define('ADD_LOT_RULES', [
-    'title' => [
+    LotField::TITLE->value => [
         ['rule' => required(), 'message' => 'Введите наименование лота'],
         ['rule' => maxLength(150), 'message' => 'Название не должно превышать 150 символов'],
     ],
-    'category' => [
+    LotField::CATEGORY->value => [
         ['rule' => required(), 'message' => 'Выберите категорию'],
     ],
-    'description' => [
+    LotField::DESCRIPTION->value => [
         ['rule' => required(), 'message' => 'Введите описание лота'],
         ['rule' => maxLength(2000), 'message' => 'Описание не должно превышать 2000 символов'],
     ],
-    'starting_price' => [
+    LotField::STARTING_PRICE->value => [
         ['rule' => required(), 'message' => 'Введите начальную цену'],
         [
             'rule' => positiveInt(),
             'message' => 'Начальная цена должна быть целым положительным числом, не превышающая 1млрд'
         ],
     ],
-    'bid_step' => [
+    LotField::BID_STEP->value => [
         ['rule' => required(), 'message' => 'Введите шаг ставки'],
         [
             'rule' => positiveInt(),
             'message' => 'Шаг ставки должен быть целым положительным числом, не превышающим 1млрд'
         ],
     ],
-    'end_time' => [
+    LotField::END_TIME->value => [
         ['rule' => required(), 'message' => 'Введите дату окончания торгов'],
         ['rule' => dateYmd(), 'message' => 'Дата должна быть в формате «ГГГГ-ММ-ДД»'],
         ['rule' => dateAtLeastTomorrow(), 'message' => 'Дата должна быть не раньше следующего дня'],
@@ -55,19 +55,19 @@ define('ADD_LOT_RULES', [
 ]);
 
 define('LOGIN_RULES', [
-    'email' => [
+    LoginField::EMAIL->value => [
         ['rule' => required(), 'message' => 'Введите e-mail'],
         ['rule' => email(), 'message' => 'Введите корректный e-mail'],
         ['rule' => maxLength(255), 'message' => 'E-mail не должен превышать 255 символов'],
     ],
-    'password' => [
+    LoginField::PASSWORD->value => [
         ['rule' => required(), 'message' => 'Введите пароль'],
         ['rule' => maxLength(72), 'message' => 'Пароль не может быть длиннее 72 символов'],
     ],
 ]);
 
 define('ADD_BID_RULES', [
-    'cost' => [
+    BidField::COST->value => [
         ['rule' => required(), 'message' => 'Введите свою ставку'],
         ['rule' => positiveInt(), 'message' => 'Ставка должна быть целым положительным числом, не превышающим 1млрд'],
     ],
@@ -126,13 +126,16 @@ function validateForm(array $inputs, array $rules): array
 function validateAddLotForm(array $inputs, array $categories): array
 {
     $rules = ADD_LOT_RULES;
-    $rules['category'][] = ['rule' => categoryExists($categories), 'message' => 'Несуществующая категория'];
+    $rules[LotField::CATEGORY->value][] = [
+        'rule' => categoryExists($categories),
+        'message' => 'Несуществующая категория'
+    ];
 
     $errors = validateForm($inputs, $rules);
 
-    $imageErr = validateImage('image');
+    $imageErr = validateImage(LotField::IMAGE->value);
     if ($imageErr !== null) {
-        $errors['image'] = $imageErr;
+        $errors[LotField::IMAGE->value] = $imageErr;
     }
 
     return $errors;
@@ -151,7 +154,10 @@ function validateAddLotForm(array $inputs, array $categories): array
 function validateRegisterForm(array $inputs, mysqli $conn): array
 {
     $rules = REGISTER_RULES;
-    $rules['email'][] = ['rule' => emailNotExists($conn), 'message' => 'Данный e-mail уже зарегистрирован'];
+    $rules[RegisterField::EMAIL->value][] = [
+        'rule' => emailNotExists($conn),
+        'message' => 'Данный e-mail уже зарегистрирован'
+    ];
 
     return validateForm($inputs, $rules);
 }
@@ -179,7 +185,7 @@ function validateLoginForm(array $inputs): array
 function validateAddBidForm(array $inputs, array $lotBids, array $lot): array
 {
     $rules = ADD_BID_RULES;
-    $rules['cost'][] = [
+    $rules[BidField::COST->value][] = [
         'rule' => validateBidStep($lot['price'], $lot['step'], !empty($lotBids)),
         'message' => 'Не соблюден шаг ставки'
     ];

@@ -22,7 +22,6 @@ function validateImage(string $fieldName): ?string
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $fileType = finfo_file($finfo, $fileName);
-    finfo_close($finfo);
 
     if ($fileType !== 'image/jpeg' && $fileType !== 'image/png') {
         return 'Допустимые форматы файлов: jpg, jpeg, png';
@@ -121,7 +120,7 @@ function dateYmd(): callable
         $format = 'Y-m-d';
         $dateTimeObj = date_create_from_format($format, $value);
         $errors = date_get_last_errors();
-        
+
         return $dateTimeObj !== false && ($errors === false || array_sum($errors) === 0);
     };
 }

@@ -43,13 +43,13 @@
                     <?php
                     if (isBidAllowed($user, $lotBids, $lot)) : ?>
                         <form class="lot-item__form" action="/lot.php?id=<?= $lot['id']; ?>" method="post" autocomplete="off">
-                            <p class="lot-item__form-item form__item <?= isset($errors['cost']) ? 'form__item--invalid' : ''; ?>">
+                            <p class="lot-item__form-item form__item <?= isset($errors[BidField::COST->value]) ? 'form__item--invalid' : ''; ?>">
                                 <label for="cost">Ваша ставка</label>
-                                <input id="cost" type="text" name="cost" placeholder="<?= formatPrice(
+                                <input id="cost" type="text" name="<?= BidField::COST->value; ?>" placeholder="<?= formatPrice(
                                     getMinBid($lot, $lotBids),
                                     false
-                                ); ?>" value="<?= htmlspecialchars($data['cost'] ?? ''); ?>">
-                                <span class="form__error"><?= $errors['cost'] ?? '' ?></span>
+                                ); ?>" value="<?= htmlspecialchars($data[BidField::COST->value] ?? ''); ?>">
+                                <span class="form__error"><?= $errors[BidField::COST->value] ?? '' ?></span>
                             </p>
                             <button type="submit" class="button">Сделать ставку</button>
                         </form>

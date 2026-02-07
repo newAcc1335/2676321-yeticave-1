@@ -16,7 +16,6 @@ function saveUploadedImage(string $fieldName, string $filePath): string
 
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $fileType = finfo_file($finfo, $tmpName);
-    finfo_close($finfo);
 
     $extensionMap = [
         'image/jpeg' => 'jpg',

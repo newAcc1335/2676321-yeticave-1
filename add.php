@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $fileName = saveUploadedImage('image', $filePath);
 
             $lot = [
-                'title' => $_POST['title'],
-                'description' => $_POST['description'],
+                'title' => $_POST[LotField::TITLE->value],
+                'description' => $_POST[LotField::DESCRIPTION->value],
                 'image_url' => '/uploads/' . $fileName,
-                'end_time' => $_POST['end_time'],
-                'starting_price' => (int)($_POST['starting_price']),
-                'bid_step' => (int)($_POST['bid_step']),
-                'category_id' => (int)($_POST['category']),
+                'end_time' => $_POST[LotField::END_TIME->value],
+                'starting_price' => (int)($_POST[LotField::STARTING_PRICE->value]),
+                'bid_step' => (int)($_POST[LotField::BID_STEP->value]),
+                'category_id' => (int)($_POST[LotField::CATEGORY->value]),
                 'creator_id' => (int)($user['id']),
             ];
 

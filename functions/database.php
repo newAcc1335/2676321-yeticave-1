@@ -527,7 +527,15 @@ function getUserBids(mysqli $conn, int $userId): array
             l.winner_id AS winnerId,
             l.end_time AS lotEndTime,
             CASE
-                WHEN l.winner_id = b.user_id THEN 1
+                WHEN b.id = (
+                    SELECT id
+                    FROM bids
+                    WHERE lot_id = b.lot_id
+                    ORDER BY amount DESC, created_at ASC
+                    LIMIT 1
+                    )
+                    AND l.winner_id = b.user_id
+                THEN 1
                 ELSE 0
             END AS isWinner
         FROM bids b

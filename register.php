@@ -27,10 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = $_POST;
     } else {
         $user = [
-            'name' => $_POST['name'],
-            'email' => $_POST['email'],
-            'password_hash' => password_hash($_POST['password'], PASSWORD_DEFAULT),
-            'contact_info' => $_POST['contactInfo'],
+            'name' => $_POST[RegisterField::NAME->value],
+            'email' => $_POST[RegisterField::EMAIL->value],
+            'password_hash' => password_hash($_POST[RegisterField::PASSWORD->value], PASSWORD_DEFAULT),
+            'contact_info' => $_POST[RegisterField::CONTACT_INFO->value],
         ];
 
         try {
