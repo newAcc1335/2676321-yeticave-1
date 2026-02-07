@@ -9,18 +9,17 @@
  */
 function includeTemplate(string $name, array $data = []): string
 {
-    $name = 'templates/' . $name;
     $result = '';
+    $name = 'templates/' . $name;
 
-    if (!is_readable($name)) {
-        return $result;
+    if (is_readable($name)) {
+        ob_start();
+        extract($data);
+        require $name;
+        $result = ob_get_clean();
     }
 
-    ob_start();
-    extract($data);
-    require $name;
-
-    return ob_get_clean();
+    return $result;
 }
 
 

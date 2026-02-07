@@ -9,29 +9,27 @@
  */
 function validateImage(string $fieldName): ?string
 {
+    $error = null;
+
     if (!isset($_FILES[$fieldName]) || empty($_FILES[$fieldName]['tmp_name'])) {
-        return 'Загрузите файл с изображением лота';
+        $error = 'Загрузите файл с изображением лота';
+    } elseif ($_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
+        $error = 'Не получилось загрузить файл';
+    } else {
+        $fileName = $_FILES[$fieldName]['tmp_name'];
+        $fileSize = $_FILES[$fieldName]['size'];
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $fileType = finfo_file($finfo, $fileName);
+
+        if ($fileType !== 'image/jpeg' && $fileType !== 'image/png') {
+            $error = 'Допустимые форматы файлов: jpg, jpeg, png';
+        } elseif ($fileSize > 2 * 1024 * 1024) {
+            $error = 'Максимальный размер файла: 2 Мб';
+        }
     }
 
-    if ($_FILES[$fieldName]['error'] !== UPLOAD_ERR_OK) {
-        return 'Не получилось загрузить файл';
-    }
-
-    $fileName = $_FILES[$fieldName]['tmp_name'];
-    $fileSize = $_FILES[$fieldName]['size'];
-
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $fileType = finfo_file($finfo, $fileName);
-
-    if ($fileType !== 'image/jpeg' && $fileType !== 'image/png') {
-        return 'Допустимые форматы файлов: jpg, jpeg, png';
-    }
-
-    if ($fileSize > 2 * 1024 * 1024) {
-        return 'Максимальный размер файла: 2 Мб';
-    }
-
-    return null;
+    return $error;
 }
 
 /**
