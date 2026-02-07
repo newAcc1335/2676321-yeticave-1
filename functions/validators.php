@@ -1,5 +1,78 @@
 <?php
 
+define('REGISTER_RULES', [
+    'email' => [
+        ['rule' => required(), 'message' => 'Введите e-mail'],
+        ['rule' => email(), 'message' => 'Введите корректный e-mail'],
+        ['rule' => maxLength(255), 'message' => 'E-mail не должен превышать 255 символов'],
+    ],
+    'password' => [
+        ['rule' => required(), 'message' => 'Введите пароль'],
+        ['rule' => minLength(5), 'message' => 'Пароль не может быть короче 5 символов'],
+        ['rule' => maxLength(72), 'message' => 'Пароль не может быть длиннее 72 символов'],
+    ],
+    'name' => [
+        ['rule' => required(), 'message' => 'Введите имя'],
+        ['rule' => maxLength(100), 'message' => 'Имя не должно превышать 100 символов'],
+    ],
+    'contactInfo' => [
+        ['rule' => required(), 'message' => 'Напишите как с вами связаться'],
+        ['rule' => maxLength(2000), 'message' => 'Контактная информация не должна превышать 2000 символов'],
+    ],
+]);
+
+define('ADD_LOT_RULES', [
+    'title' => [
+        ['rule' => required(), 'message' => 'Введите наименование лота'],
+        ['rule' => maxLength(150), 'message' => 'Название не должно превышать 150 символов'],
+    ],
+    'category' => [
+        ['rule' => required(), 'message' => 'Выберите категорию'],
+    ],
+    'description' => [
+        ['rule' => required(), 'message' => 'Введите описание лота'],
+        ['rule' => maxLength(2000), 'message' => 'Описание не должно превышать 2000 символов'],
+    ],
+    'starting_price' => [
+        ['rule' => required(), 'message' => 'Введите начальную цену'],
+        [
+            'rule' => positiveInt(),
+            'message' => 'Начальная цена должна быть целым положительным числом, не превышающая 1млрд'
+        ],
+    ],
+    'bid_step' => [
+        ['rule' => required(), 'message' => 'Введите шаг ставки'],
+        [
+            'rule' => positiveInt(),
+            'message' => 'Шаг ставки должен быть целым положительным числом, не превышающим 1млрд'
+        ],
+    ],
+    'end_time' => [
+        ['rule' => required(), 'message' => 'Введите дату окончания торгов'],
+        ['rule' => dateYmd(), 'message' => 'Дата должна быть в формате «ГГГГ-ММ-ДД»'],
+        ['rule' => dateAtLeastTomorrow(), 'message' => 'Дата должна быть не раньше следующего дня'],
+    ],
+]);
+
+define('LOGIN_RULES', [
+    'email' => [
+        ['rule' => required(), 'message' => 'Введите e-mail'],
+        ['rule' => email(), 'message' => 'Введите корректный e-mail'],
+        ['rule' => maxLength(255), 'message' => 'E-mail не должен превышать 255 символов'],
+    ],
+    'password' => [
+        ['rule' => required(), 'message' => 'Введите пароль'],
+        ['rule' => maxLength(72), 'message' => 'Пароль не может быть длиннее 72 символов'],
+    ],
+]);
+
+define('ADD_BID_RULES', [
+    'cost' => [
+        ['rule' => required(), 'message' => 'Введите свою ставку'],
+        ['rule' => positiveInt(), 'message' => 'Ставка должна быть целым положительным числом, не превышающим 1млрд'],
+    ],
+]);
+
 /**
  * Валидирует входные данные формы по набору правил.
  *
@@ -52,77 +125,8 @@ function validateForm(array $inputs, array $rules): array
  */
 function validateAddLotForm(array $inputs, array $categories): array
 {
-    $rules = [
-        'title' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите наименование лота',
-            ],
-            [
-                'rule' => maxLength(150),
-                'message' => 'Название не должно превышать 150 символов',
-            ],
-        ],
-
-        'category' => [
-            [
-                'rule' => required(),
-                'message' => 'Выберите категорию',
-            ],
-            [
-                'rule' => categoryExists($categories),
-                'message' => 'Несуществующая категория',
-            ],
-        ],
-
-        'description' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите описание лота',
-            ],
-            [
-                'rule' => maxLength(2000),
-                'message' => 'Описание не должно превышать 2000 символов',
-            ],
-        ],
-
-        'starting_price' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите начальную цену',
-            ],
-            [
-                'rule' => positiveInt(),
-                'message' => 'Начальная цена должна быть целым положительным числом, не превышающая 1млрд',
-            ],
-        ],
-
-        'bid_step' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите шаг ставки',
-            ],
-            [
-                'rule' => positiveInt(),
-                'message' => 'Шаг ставки должен быть целым положительным числом, не превышающим 1млрд',
-            ],
-        ],
-
-        'end_time' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите дату окончания торгов',
-            ],
-            [
-                'rule' => dateYmd(),
-                'message' => 'Дата должна быть в формате «ГГГГ-ММ-ДД»',
-            ],
-            [
-                'rule' => dateAtLeastTomorrow(),
-                'message' => 'Дата должна быть не раньше следующего дня',
-            ],
-        ],
-    ];
+    $rules = ADD_LOT_RULES;
+    $rules['category'][] = ['rule' => categoryExists($categories), 'message' => 'Несуществующая категория'];
 
     $errors = validateForm($inputs, $rules);
 
@@ -135,7 +139,7 @@ function validateAddLotForm(array $inputs, array $categories): array
 }
 
 /**
- * Валидирует данные формы добавления лота.
+ * Валидирует данные формы регистрации пользователя.
  *
  * @param array $inputs Массив с данными формы
  * @param mysqli $conn Соединение с базой данных
@@ -146,63 +150,8 @@ function validateAddLotForm(array $inputs, array $categories): array
  */
 function validateRegisterForm(array $inputs, mysqli $conn): array
 {
-    $rules = [
-        'email' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите e-mail',
-            ],
-            [
-                'rule' => maxLength(255),
-                'message' => 'E-mail не должен превышать 255 символов',
-            ],
-            [
-                'rule' => email(),
-                'message' => 'Введите корректный e-mail',
-            ],
-            [
-                'rule' => emailNotExists($conn),
-                'message' => 'Данный e-mail уже зарегистрирован',
-            ],
-        ],
-
-        'password' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите пароль',
-            ],
-            [
-                'rule' => minLength(5),
-                'message' => 'Пароль не может быть короче 5 символов',
-            ],
-            [
-                'rule' => maxLength(72),
-                'message' => 'Пароль не может быть длиннее 72 символов',
-            ],
-        ],
-
-        'name' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите имя',
-            ],
-            [
-                'rule' => maxLength(100),
-                'message' => 'Имя не должно превышать 100 символов',
-            ],
-        ],
-
-        'contactInfo' => [
-            [
-                'rule' => required(),
-                'message' => 'Напишите как с вами связаться',
-            ],
-            [
-                'rule' => maxLength(2000),
-                'message' => 'Контактная информация не должна превышать 2000 символов',
-            ],
-        ],
-    ];
+    $rules = REGISTER_RULES;
+    $rules['email'][] = ['rule' => emailNotExists($conn), 'message' => 'Данный e-mail уже зарегистрирован'];
 
     return validateForm($inputs, $rules);
 }
@@ -215,39 +164,11 @@ function validateRegisterForm(array $inputs, mysqli $conn): array
  */
 function validateLoginForm(array $inputs): array
 {
-    $rules = [
-        'email' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите e-mail',
-            ],
-            [
-                'rule' => email(),
-                'message' => 'Введите корректный e-mail',
-            ],
-            [
-                'rule' => maxLength(255),
-                'message' => 'E-mail не должен превышать 255 символов',
-            ],
-        ],
-
-        'password' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите пароль',
-            ],
-            [
-                'rule' => maxLength(72),
-                'message' => 'Пароль не может быть длиннее 72 символов',
-            ],
-        ],
-    ];
-
-    return validateForm($inputs, $rules);
+    return validateForm($inputs, LOGIN_RULES);
 }
 
 /**
- * Валидирует данные формы авторизации.
+ * Валидирует данные формы добавления ставки к лоту.
  *
  * @param array $inputs Массив с данными формы
  * @param array $lotBids Массив со ставками к данном лоту
@@ -257,21 +178,10 @@ function validateLoginForm(array $inputs): array
  */
 function validateAddBidForm(array $inputs, array $lotBids, array $lot): array
 {
-    $rules = [
-        'cost' => [
-            [
-                'rule' => required(),
-                'message' => 'Введите свою ставку',
-            ],
-            [
-                'rule' => positiveInt(),
-                'message' => 'Ставка должна быть целым положительным числом, не превышающим 1млрд',
-            ],
-            [
-                'rule' => validateBidStep($lot['price'], $lot['step'], !empty($lotBids)),
-                'message' => 'Не соблюден шаг ставки',
-            ],
-        ]
+    $rules = ADD_BID_RULES;
+    $rules['cost'][] = [
+        'rule' => validateBidStep($lot['price'], $lot['step'], !empty($lotBids)),
+        'message' => 'Не соблюден шаг ставки'
     ];
 
     return validateForm($inputs, $rules);
