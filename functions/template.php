@@ -355,7 +355,7 @@ function getLotsQuery(?int $categoryId, string $search): string
 function getLotsTitle(?int $categoryId, string $search, array $categories): string
 {
     if ($search !== '') {
-        return "Результаты поиска по запросу «<span>$search</span>»";
+        return $search;
     } elseif ($categoryId !== null) {
         $cat = findCategoryById($categories, $categoryId);
         $catName = $cat['name'] ?? '';

@@ -7,7 +7,7 @@
  * @var int $totalPages
  * @var array $lots
  * @var string $lotsList
- * @var array $query
+ * @var string $query
  * @var string $message
  */
 
@@ -17,7 +17,17 @@
     <?= $navigation; ?>
     <div class="container">
         <section class="lots">
-            <h2><?= htmlspecialchars($message); ?></h2>
+            <h2>
+                <?php
+                if ($search !== ''): ?>
+                    Результаты поиска по запросу
+                    <span><?= htmlspecialchars($message) ?></span>
+                <?php
+                else: ?>
+                    <?= htmlspecialchars($message) ?>
+                <?php
+                endif; ?>
+            </h2>
             <?php
             if (empty($lots)): ?>
                 <p>Ничего не найдено по вашему запросу</p>
@@ -33,7 +43,7 @@
                 <li class="pagination-item pagination-item-prev">
                     <?php
                     if ($page > 1): ?>
-                        <a href="?<?= htmlspecialchars($query); ?>&page=<?= $page - 1; ?>">Назад</a>
+                        <a href="?<?= $query; ?>&page=<?= $page - 1; ?>">Назад</a>
                     <?php
                     else: ?>
                         <a>Назад</a>
@@ -49,7 +59,7 @@
                             <a><?= $i; ?></a>
                         <?php
                         else: ?>
-                            <a href="?<?= htmlspecialchars($query); ?>&page=<?= $i; ?>"><?= $i; ?></a>
+                            <a href="?<?= $query; ?>&page=<?= $i; ?>"><?= $i; ?></a>
                         <?php
                         endif; ?>
                     </li>
@@ -59,7 +69,7 @@
                 <li class="pagination-item pagination-item-next">
                     <?php
                     if ($page < $totalPages): ?>
-                        <a href="?<?= htmlspecialchars($query); ?>&page=<?= $page + 1; ?>">Вперед</a>
+                        <a href="?<?= $query; ?>&page=<?= $page + 1; ?>">Вперед</a>
                     <?php
                     else: ?>
                         <a>Вперед</a>
