@@ -336,11 +336,12 @@ function authenticateUser(mysqli $conn, string $email, string $password): ?int
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
-    if (!$user || !password_verify($password, $user['password_hash'])) {
-        return null;
+    $userId = null;
+    if ($user && password_verify($password, $user['password_hash'])) {
+        $userId = $user['id'];
     }
 
-    return $user['id'];
+    return $userId;
 }
 
 /**
