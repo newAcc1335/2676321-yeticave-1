@@ -17,17 +17,7 @@
     <?= $navigation; ?>
     <div class="container">
         <section class="lots">
-            <h2>
-                <?php
-                if ($search !== ''): ?>
-                    Результаты поиска по запросу
-                    <span><?= htmlspecialchars($message) ?></span>
-                <?php
-                else: ?>
-                    <?= htmlspecialchars($message) ?>
-                <?php
-                endif; ?>
-            </h2>
+            <h2><?= $message; ?></h2>
             <?php
             if (empty($lots)): ?>
                 <p>Ничего не найдено по вашему запросу</p>

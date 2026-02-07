@@ -354,15 +354,16 @@ function getLotsQuery(?int $categoryId, string $search): string
  */
 function getLotsTitle(?int $categoryId, string $search, array $categories): string
 {
+    $title = '';
     if ($search !== '') {
-        return $search;
+        $title = "Результаты поиска по запросу  <span>" . htmlspecialchars($search) . "</span>";
     } elseif ($categoryId !== null) {
         $cat = findCategoryById($categories, $categoryId);
         $catName = $cat['name'] ?? '';
-        return $catName !== '' ? "Все лоты в категории $catName" : 'Все лоты';
+        $title = $catName !== '' ? "Все лоты в категории $catName" : 'Все лоты';
     }
 
-    return '';
+    return $title;
 }
 
 /**
