@@ -61,11 +61,13 @@ function sendEmail(Mailer $mailer, array $lot, array $config): bool
     $email->subject('Ваша ставка победила');
     $email->html($message);
 
+    $sent = false;
     try {
         $mailer->send($email);
-        return true;
+        $sent = true;
     } catch (TransportExceptionInterface $e) {
         error_log($e->getMessage());
-        return false;
     }
+
+    return $sent;
 }

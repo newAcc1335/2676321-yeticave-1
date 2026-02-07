@@ -50,25 +50,20 @@ function formatPrice(int|float $price, bool $withRub = true): string
  */
 function getDtRange(string $endDate): array
 {
-    $now = new DateTime();
-    try {
-        $end = new DateTime($endDate);
-    } catch (Exception $e) {
-        error_log($e->getMessage());
-        return [
-            'hours' => 0,
-            'minutes' => 0
-        ];
-    }
-
-
-    $diff = $now->diff($end);
     $hours = 0;
     $minutes = 0;
 
-    if ($diff->invert === 0) {
-        $hours = $diff->h + $diff->days * 24;
-        $minutes = $diff->i;
+    try {
+        $now = new DateTime();
+        $end = new DateTime($endDate);
+        $diff = $now->diff($end);
+
+        if ($diff->invert === 0) {
+            $hours = $diff->h + $diff->days * 24;
+            $minutes = $diff->i;
+        }
+    } catch (Exception $e) {
+        error_log($e->getMessage());
     }
 
     return [
@@ -132,15 +127,17 @@ function getNounPluralForm(int $number, string $one, string $two, string $many):
     $number = abs($number) % 100;
     $mod10 = $number % 10;
 
-    if ($number >= 11 && $number <= 19) {
-        return $many;
-    }
-
-    return match ($mod10) {
+    $form = match ($mod10) {
         1 => $one,
         2, 3, 4 => $two,
         default => $many,
     };
+
+    if ($number >= 11 && $number <= 19) {
+        $form = $many;
+    }
+
+    return $form;
 }
 
 /**
@@ -194,31 +191,30 @@ function renderErrorPage(array $user, array $categories, int $codeErr, string $m
  */
 function formatTimeAgo(string $createdAt): string
 {
-    $now = new DateTime();
+    $result = 'недавно';
+
     try {
+        $now = new DateTime();
         $created = new DateTime($createdAt);
+        $diff = $now->diff($created);
+
+        if ($diff->invert === 1) {
+            $hours = $diff->h + $diff->days * 24;
+            $minutes = $diff->i;
+
+            if ($hours === 0) {
+                $result = $minutes === 0
+                    ? 'менее минуты назад'
+                    : $minutes . ' ' . getNounPluralForm($minutes, 'минута', 'минуты', 'минут') . ' назад';
+            } else {
+                $result = $hours . ' ' . getNounPluralForm($hours, 'час', 'часа', 'часов') . ' назад';
+            }
+        }
     } catch (Exception $e) {
         error_log($e->getMessage());
-        return 'недавно';
     }
 
-    $diff = $now->diff($created);
-
-    if ($diff->invert === 0) {
-        return 'недавно';
-    }
-
-    $hours = $diff->h + $diff->days * 24;
-    $minutes = $diff->i;
-
-    if ($hours === 0) {
-        if ($minutes === 0) {
-            return 'менее минуты назад';
-        }
-        return $minutes . ' ' . getNounPluralForm($minutes, 'минута', 'минуты', 'минут') . ' назад';
-    }
-
-    return $hours . ' ' . getNounPluralForm($hours, 'час', 'часа', 'часов') . ' назад';
+    return $result;
 }
 
 /**
@@ -246,15 +242,15 @@ function isLotFinished(string $lotEndTime): bool
  */
 function getBidState(array $bid): string
 {
+    $state = 'default';
+
     if ($bid['isWinner']) {
-        return 'win';
+        $state = 'win';
+    } elseif (isLotFinished($bid['lotEndTime'])) {
+        $state = 'end';
     }
 
-    if (isLotFinished($bid['lotEndTime'])) {
-        return 'end';
-    }
-
-    return 'default';
+    return $state;
 }
 
 /**
@@ -311,13 +307,16 @@ function getBidRowClass(array $bid): string
  */
 function findCategoryById(array $categories, int $id): ?array
 {
+    $result = null;
+
     foreach ($categories as $category) {
         if ((int)$category['id'] === $id) {
-            return $category;
+            $result = $category;
+            break;
         }
     }
 
-    return null;
+    return $result;
 }
 
 /**
@@ -377,29 +376,18 @@ function getLotsTitle(?int $categoryId, string $search, array $categories): stri
  */
 function isBidAllowed(array $user, array $lotBids, array $lot): bool
 {
-    if (empty($user)) {
-        return false;
+    $isAllowed = true;
+
+    if (empty($user) || isLotFinished($lot['endTime']) || (int)$lot['creatorId'] === (int)$user['id']) {
+        $isAllowed = false;
+    } elseif (!empty($lotBids)) {
+        $lastUserId = $lotBids[0]['userId'] ?? null;
+        if ($lastUserId !== null && (int)$user['id'] === (int)$lastUserId) {
+            $isAllowed = false;
+        }
     }
 
-    if (isLotFinished($lot['endTime'])) {
-        return false;
-    }
-
-    if ((int)$lot['creatorId'] === (int)$user['id']) {
-        return false;
-    }
-
-    if (empty($lotBids)) {
-        return true;
-    }
-
-    $lastUserId = $lotBids[0]['userId'] ?? null;
-
-    if ($lastUserId === null) {
-        return true;
-    }
-
-    return (int)$user['id'] !== (int)$lastUserId;
+    return $isAllowed;
 }
 
 /**
@@ -411,13 +399,14 @@ function isBidAllowed(array $user, array $lotBids, array $lot): bool
  */
 function formatBidsCount(int $bidsCount): string
 {
-    if ($bidsCount === 0) {
-        return 'Стартовая цена';
+    $result = 'Стартовая цена';
+
+    if ($bidsCount !== 0) {
+        $word = getNounPluralForm($bidsCount, 'ставка', 'ставки', 'ставок');
+        $result = $bidsCount . ' ' . $word;
     }
 
-    $word = getNounPluralForm($bidsCount, 'ставка', 'ставки', 'ставок');
-
-    return $bidsCount . ' ' . $word;
+    return $result;
 }
 
 /**
@@ -444,9 +433,11 @@ function filterInputString(string $param, int $maxLength = 150): string
  */
 function getMinBid(array $lot, array $lotBids): int
 {
+    $minBid = $lot['price'];
+
     if (!empty($lotBids)) {
-        return $lotBids[0]['amount'] + $lot['step'];
+        $minBid = $lotBids[0]['amount'] + $lot['step'];
     }
 
-    return $lot['price'];
+    return $minBid;
 }
